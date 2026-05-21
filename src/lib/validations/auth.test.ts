@@ -16,6 +16,7 @@ describe("auth validations", () => {
       name: "Maria Silva",
       email: "maria@escola.pi.gov.br",
       password: "senhaSegura123",
+      city: "Vila Nova do Piauí",
       school_id: "d3b07384-d113-4956-a5cc-9c6f2c3d526e",
       grade: "2",
       class_identifier: "A",

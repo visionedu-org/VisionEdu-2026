@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
+import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 
 export function AuthHeader() {
@@ -9,9 +10,13 @@ export function AuthHeader() {
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.clearSession);
 
-  function handleLogout() {
-    clearSession();
-    router.push("/login");
+  async function handleLogout() {
+    try {
+      await authService.logout();
+    } finally {
+      clearSession();
+      router.push("/login");
+    }
   }
 
   return (

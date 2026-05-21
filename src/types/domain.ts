@@ -5,10 +5,17 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  city?: string;
   school_id?: string;
   grade?: string;
   class_identifier?: string;
   teacher_classes?: TeacherClassAssignment[];
+  teacher_schools?: TeacherSchoolLink[];
+}
+
+export interface TeacherSchoolLink {
+  school_id: string;
+  name: string;
 }
 
 export interface TeacherClassAssignment {

@@ -1,6 +1,7 @@
 import type { UserRole } from "@/types/domain";
+import { SESSION_COOKIE_NAME } from "@/server/auth/jwt";
 
-export const SESSION_COOKIE_NAME = "visionedu_session";
+export { SESSION_COOKIE_NAME };
 
 export interface SessionCookiePayload {
   token: string;
@@ -8,27 +9,18 @@ export interface SessionCookiePayload {
   exp: number;
 }
 
-export function setSessionCookie(payload: SessionCookiePayload) {
-  if (typeof document === "undefined") return;
-  const maxAge = Math.max(0, Math.floor((payload.exp - Date.now()) / 1000));
-  const value = encodeURIComponent(JSON.stringify(payload));
-  document.cookie = `${SESSION_COOKIE_NAME}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+/**
+ * Cookie httpOnly é definido pelo servidor em login/register (Set-Cookie).
+ * Use authService.logout() para invalidar a sessão no servidor.
+ */
+export function setSessionCookie(_payload: SessionCookiePayload) {
+  // noop — sessão no cookie é gerenciada pelas Route Handlers
 }
 
 export function clearSessionCookie() {
-  if (typeof document === "undefined") return;
-  document.cookie = `${SESSION_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
+  // noop — use authService.logout()
 }
 
 export function readSessionCookie(): SessionCookiePayload | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(`${SESSION_COOKIE_NAME}=`));
-  if (!match) return null;
-  try {
-    return JSON.parse(decodeURIComponent(match.split("=").slice(1).join("=")));
-  } catch {
-    return null;
-  }
+  return null;
 }

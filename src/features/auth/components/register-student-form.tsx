@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LegalConsentBlock } from "./legal-consent-block";
+import { ActivityCitySelect } from "./activity-city-select";
+import { DEFAULT_ACTIVITY_CITY } from "@/lib/constants/activity-cities";
 
 export function RegisterStudentForm() {
   const router = useRouter();
@@ -31,6 +33,7 @@ export function RegisterStudentForm() {
       name: "",
       email: "",
       password: "",
+      city: DEFAULT_ACTIVITY_CITY,
       school_id: defaultSchoolId,
       grade: "2",
       class_identifier: "A",
@@ -111,6 +114,17 @@ export function RegisterStudentForm() {
           <p className="text-sm text-destructive">{form.formState.errors.password.message}</p>
         )}
       </div>
+
+      <ActivityCitySelect
+        value={form.watch("city")}
+        onChange={(v) =>
+          form.setValue("city", v as RegisterStudentFormValues["city"], {
+            shouldValidate: true,
+          })
+        }
+        onBlur={() => form.trigger("city")}
+        error={form.formState.errors.city?.message}
+      />
 
       <div className="space-y-2">
         <Label htmlFor="school">Escola</Label>

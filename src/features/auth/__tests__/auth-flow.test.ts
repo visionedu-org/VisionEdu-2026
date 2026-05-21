@@ -29,6 +29,7 @@ describe("auth MSW flows", () => {
       name: "Maria Teste",
       email,
       password: "senhaSegura123",
+      city: "Vila Nova do Piauí",
       school_id: "d3b07384-d113-4956-a5cc-9c6f2c3d526e",
       grade: "1",
       class_identifier: "A",
@@ -38,26 +39,25 @@ describe("auth MSW flows", () => {
     expect(res.user.email).toBe(email);
   });
 
-  it("register teacher with two classes", async () => {
+  it("register teacher with schools and classes", async () => {
     const email = `novo.prof.${Date.now()}@escola.pi.gov.br`;
     const res = await authService.registerTeacher({
       name: "Regina Teste",
       email,
       password: "senhaSegura123",
-      classes: [
+      city: "Vila Nova do Piauí",
+      schools: [
         {
           school_id: "d3b07384-d113-4956-a5cc-9c6f2c3d526e",
-          grade: "2",
-          class_identifier: "A",
-        },
-        {
-          school_id: "d3b07384-d113-4956-a5cc-9c6f2c3d526e",
-          grade: "3",
-          class_identifier: "B",
+          classes: [
+            { grade: "2", class_identifier: "A" },
+            { grade: "3", class_identifier: "B" },
+          ],
         },
       ],
       termsAccepted: true,
     });
+    expect(res.user.teacher_schools?.length).toBe(1);
     expect(res.user.teacher_classes?.length).toBe(2);
   });
 });

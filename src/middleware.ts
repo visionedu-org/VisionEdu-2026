@@ -1,27 +1,40 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  SESSION_COOKIE_NAME,
+  verifyAccessToken,
+} from "@/server/auth/jwt";
 
-const SESSION_COOKIE_NAME = "visionedu_session";
-
-function parseSession(request: NextRequest) {
+function getTokenFromCookie(request: NextRequest): string | null {
   const raw = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   if (!raw) return null;
   try {
-    const payload = JSON.parse(decodeURIComponent(raw)) as {
-      role: "student" | "teacher";
-      exp: number;
-      token: string;
-    };
-    if (Date.now() > payload.exp) return null;
-    return payload;
+    return decodeURIComponent(raw);
   } catch {
-    return null;
+    return raw;
   }
 }
 
-export function middleware(request: NextRequest) {
+async function parseSession(request: NextRequest) {
+  const token = getTokenFromCookie(request);
+  if (!token) return null;
+
+  const payload = await verifyAccessToken(token);
+  if (!payload?.sub || !payload.role) return null;
+
+  const expMs = payload.exp ? payload.exp * 1000 : 0;
+  if (expMs && Date.now() > expMs) return null;
+
+  return {
+    role: payload.role as "student" | "teacher",
+    token,
+    exp: expMs,
+  };
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = parseSession(request);
+  const session = await parseSession(request);
 
   const isAuthRoute =
     pathname === "/login" ||

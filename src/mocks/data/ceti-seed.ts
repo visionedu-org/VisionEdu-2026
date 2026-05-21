@@ -1,6 +1,7 @@
 import type { ClassGroup, School, User } from "@/types/domain";
 
 export const CETI_SCHOOL_ID = "d3b07384-d113-4956-a5cc-9c6f2c3d526e";
+export const EMEF_SCHOOL_ID = "e4c18495-e224-5067-b6dd-0d7f3e4d637f";
 
 export const cetiSchool: School = {
   id: CETI_SCHOOL_ID,
@@ -9,18 +10,41 @@ export const cetiSchool: School = {
   city: "Vila Nova do Piauí, PI",
 };
 
+export const emefSchool: School = {
+  id: EMEF_SCHOOL_ID,
+  name: "EMEF João Batista de Sousa",
+  gre: "16ª GRE",
+  city: "Vila Nova do Piauí, PI",
+};
+
+export const pilotSchools: School[] = [cetiSchool, emefSchool];
+
 const grades = ["1", "2", "3"] as const;
 const sections = ["A", "B"] as const;
 
-export const cetiClasses: ClassGroup[] = grades.flatMap((grade) =>
-  sections.map((section) => ({
-    id: `class-${grade}-${section}`,
-    school_id: CETI_SCHOOL_ID,
-    grade,
-    class_identifier: section,
-    label: `${grade}º ano — Turma ${section}`,
-  }))
+function buildClassesForSchool(schoolId: string, idPrefix: string): ClassGroup[] {
+  return grades.flatMap((grade) =>
+    sections.map((section) => ({
+      id: `${idPrefix}-${grade}-${section}`,
+      school_id: schoolId,
+      grade,
+      class_identifier: section,
+      label: `${grade}º ano — Turma ${section}`,
+    }))
+  );
+}
+
+export const cetiClasses: ClassGroup[] = buildClassesForSchool(
+  CETI_SCHOOL_ID,
+  "class-ceti"
 );
+
+export const emefClasses: ClassGroup[] = buildClassesForSchool(
+  EMEF_SCHOOL_ID,
+  "class-emef"
+);
+
+export const pilotClasses: ClassGroup[] = [...cetiClasses, ...emefClasses];
 
 export const DEMO_STUDENT_EMAIL = "thiago.demo@escola.pi.gov.br";
 export const DEMO_STUDENT_PASSWORD = "senhaDemo123";
@@ -32,6 +56,7 @@ export const demoStudent: User = {
   name: "Thiago Silva (demo)",
   email: DEMO_STUDENT_EMAIL,
   role: "student",
+  city: "Vila Nova do Piauí",
   school_id: CETI_SCHOOL_ID,
   grade: "2",
   class_identifier: "A",
@@ -42,6 +67,10 @@ export const demoTeacher: User = {
   name: "Professora Regina (demo)",
   email: DEMO_TEACHER_EMAIL,
   role: "teacher",
+  city: "Vila Nova do Piauí",
+  teacher_schools: [
+    { school_id: CETI_SCHOOL_ID, name: cetiSchool.name },
+  ],
   teacher_classes: [
     { school_id: CETI_SCHOOL_ID, grade: "2", class_identifier: "A" },
     { school_id: CETI_SCHOOL_ID, grade: "2", class_identifier: "B" },

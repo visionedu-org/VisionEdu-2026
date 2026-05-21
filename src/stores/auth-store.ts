@@ -3,11 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AuthResponse, User, UserRole } from "@/types/domain";
-import {
-  clearSessionCookie,
-  readSessionCookie,
-  setSessionCookie,
-} from "@/lib/session-cookie";
+import { setSessionCookie } from "@/lib/session-cookie";
 
 interface AuthState {
   accessToken: string | null;
@@ -50,7 +46,6 @@ export const useAuthStore = create<AuthState>()(
           role: null,
           expiresAt: null,
         });
-        clearSessionCookie();
       },
 
       isExpired: () => {
@@ -60,18 +55,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       hydrateFromCookie: () => {
-        const cookie = readSessionCookie();
-        if (!cookie || Date.now() > cookie.exp) {
+        if (get().isExpired()) {
           get().clearSession();
-          return;
-        }
-        const state = get();
-        if (!state.accessToken) {
-          set({
-            accessToken: cookie.token,
-            role: cookie.role,
-            expiresAt: cookie.exp,
-          });
         }
       },
     }),

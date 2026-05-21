@@ -1,15 +1,19 @@
 "use client";
 
 import { useMemo } from "react";
-import { cetiClasses, cetiSchool } from "@/mocks/data/ceti-seed";
+import {
+  cetiSchool,
+  pilotClasses,
+  pilotSchools,
+} from "@/mocks/data/ceti-seed";
 
 const GRADES = ["1", "2", "3"] as const;
 
 export function useCetiOptions() {
-  const schools = useMemo(() => [cetiSchool], []);
+  const schools = useMemo(() => pilotSchools, []);
 
   const getClasses = (schoolId: string, grade: string) =>
-    cetiClasses.filter(
+    pilotClasses.filter(
       (c) => c.school_id === schoolId && c.grade === grade
     );
 
