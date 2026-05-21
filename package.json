@@ -5,9 +5,13 @@
   "scripts": {
     "test": "vitest run",
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
     "analyze": "cross-env ANALYZE=true next build",
     "lhci": "lhci autorun",
     "perf:student": "npm run build && lhci autorun",
@@ -17,12 +21,16 @@
     "@base-ui/react": "^1.5.0",
     "@hookform/resolvers": "^5.2.2",
     "@mswjs/interceptors": "^0.41.9",
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "jose": "^6.2.3",
     "lucide-react": "^1.16.0",
     "msw": "^2.14.6",
     "next": "16.2.6",
     "next-themes": "^0.4.4",
+    "prisma": "^6.19.3",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -39,6 +47,7 @@
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
@@ -49,7 +58,11 @@
     "eslint-config-next": "16.2.6",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4",
+    "tsx": "^4.22.3",
     "typescript": "^5",
     "vitest": "^4.1.7"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }
