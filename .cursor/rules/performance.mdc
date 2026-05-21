@@ -1,0 +1,40 @@
+---
+description: Lighthouse, Core Web Vitals, tempo de carregamento e imagens
+globs: "**/*.{html,tsx,jsx,vue,css,scss,js,ts}"
+alwaysApply: false
+---
+
+# Desempenho (não negociável)
+
+## Lighthouse
+
+- Performance **> 90** em páginas críticas.
+
+## Tempo de carregamento
+
+- Aplicação funcional em **≤ 2,5 s** (percebido pelo usuário).
+
+## Imagens
+
+- Preferir **WebP** e **AVIF** quando suportado.
+- Todo `<img>` com `alt` **descritivo e acessível** (nunca vazio em conteúdo informativo).
+
+```html
+<!-- ✅ -->
+<img src="hero.avif" alt="Estudante usando o painel VisionEdu no tablet" width="800" height="450" loading="lazy" />
+```
+
+## Core Web Vitals (máximos)
+
+| Métrica | Limite |
+|---------|--------|
+| LCP | ≤ 2,5s |
+| FCP | ≤ 1,8s |
+| TBT | < 200ms |
+| CLS | < 0,1 |
+| SI | ≤ 3,4s |
+
+## Práticas
+
+- Lazy-load abaixo da dobra; evitar JS/CSS bloqueantes desnecessários.
+- Medir após mudanças que afetem bundle, fontes ou imagens hero.

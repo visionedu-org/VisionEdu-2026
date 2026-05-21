@@ -1,0 +1,40 @@
+---
+description: Acessibilidade WCAG 2.1 AA — teclado, leitores de tela, contraste e HTML semântico
+globs: "**/*.{html,tsx,jsx,vue}"
+alwaysApply: false
+---
+
+# Acessibilidade (WCAG 2.1 AA)
+
+## Teclado
+
+- Todos os interativos acessíveis por teclado (Tab, Enter, Space, Escape quando aplicável).
+- Ordem de foco **lógica e previsível**; sem armadilhas de foco.
+- Estados de foco visíveis (não remover `outline` sem substituto acessível).
+
+## Leitores de tela
+
+- Validar manualmente com **NVDA** (Windows) e **VoiceOver** (macOS/iOS) em fluxos críticos.
+- Usar `aria-*` só quando HTML nativo não bastar; preferir elementos semânticos.
+
+## Contraste e legibilidade
+
+- Texto e fundo: contraste **WCAG 2.1 AA** (4,5:1 texto normal; 3:1 texto grande).
+- Controles e estados (hover, focus, disabled) também legíveis.
+
+## HTML semântico
+
+Preferir:
+
+```html
+<header>
+<nav>
+<main>
+<section>
+<article>
+<footer>
+```
+
+- Evitar `<div>` genérico quando existir elemento semântico adequado.
+- Um `<h1>` por página; hierarquia de headings sem saltos.
+- Labels associados a inputs (`<label for="...">` ou `aria-labelledby`).

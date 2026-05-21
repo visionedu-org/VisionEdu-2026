@@ -1,0 +1,38 @@
+---
+description: Lint, Prettier, auditoria de dependências e build de produção
+alwaysApply: true
+---
+
+# Validação, Segurança e Construção
+
+## Lint e formatação
+
+Antes de concluir alterações, execute:
+
+```bash
+npm run lint
+```
+
+- Código formatado com **Prettier**.
+- **Nenhum** erro ou aviso crítico de lint.
+
+## Auditoria de dependências
+
+Execute:
+
+```bash
+npm audit
+```
+
+- Não deixe vulnerabilidades conhecidas no projeto; corrija ou documente mitigação aceita pelo time.
+
+## Build de produção
+
+- CSS e JavaScript devem ser **minificados** no build de produção.
+- `npm run build` (ou equivalente) deve concluir **sem erros** antes de merge ou deploy.
+
+## Checklist do agente
+
+1. `npm run lint` — sem erros críticos
+2. `npm audit` — sem vulnerabilidades pendentes
+3. Build de produção — sucesso e assets minificados

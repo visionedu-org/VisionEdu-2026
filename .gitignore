@@ -1,0 +1,172 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# =============================================================================
+# Dependencies
+# =============================================================================
+/node_modules
+/.pnp
+.pnp.*
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+.yarn/install-state.gz
+.pnpm-store
+
+# =============================================================================
+# Build & output (Next.js, bundlers, static export)
+# =============================================================================
+/.next/
+/out/
+/build
+/dist
+*.tsbuildinfo
+
+# Next.js / SWC / Turbopack
+next-env.d.ts
+.swc/
+
+# Turborepo
+.turbo/
+
+# Bundle analyzer (ANALYZE=true)
+analyze/
+
+# =============================================================================
+# Testing & quality (Vitest, coverage, Lighthouse CI)
+# =============================================================================
+/coverage
+*.lcov
+.nyc_output
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.vitest-cache/
+
+# Lighthouse CI — relatórios gerados localmente
+.lighthouseci/
+
+# =============================================================================
+# Environment & secrets (nunca commitar credenciais)
+# =============================================================================
+.env
+.env.*
+!.env.example
+!.env*.example
+
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+secrets.json
+
+# =============================================================================
+# Logs & debug
+# =============================================================================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+logs/
+.trace
+
+# =============================================================================
+# Deploy & hosting
+# =============================================================================
+.vercel
+
+# =============================================================================
+# Lint / format caches
+# =============================================================================
+.eslintcache
+.prettiercache
+.stylelintcache
+
+# =============================================================================
+# IDE & editores
+# =============================================================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+# Cursor — config e estado local
+.cursor/
+
+# =============================================================================
+# GSD / agentes locais (instalação e runtime, não versionar)
+# =============================================================================
+.agent/
+.planning/
+CLAUDE.md
+AGENTS.md
+
+# =============================================================================
+# Sistema operacional
+# =============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# =============================================================================
+# Temporários, cache genérico e backups
+# =============================================================================
+.cache/
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.swp
+*.swo
+.history/
+
+# OneDrive / sync conflicts (opcional)
+~$*
+
+# =============================================================================
+# Storybook / docs gerados (se usar no futuro)
+# =============================================================================
+storybook-static/
+
+# =============================================================================
+# Python (pasta backend, se evoluir para código)
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+

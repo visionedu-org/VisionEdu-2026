@@ -1,0 +1,23 @@
+---
+description: Qualidade de código, modularidade e responsabilidade única (VisionEdu)
+alwaysApply: true
+---
+
+# Qualidade de Código e Arquitetura
+
+## Código limpo
+
+- Priorize legibilidade para humanos; código claro vale mais que micro-otimizações prematuras.
+- Nomes descritivos, funções curtas e fluxo fácil de seguir.
+
+## DRY e SRP
+
+- Código modular; evite repetição desnecessária.
+- Cada módulo, classe ou função com **uma** responsabilidade clara.
+- Extraia utilitários compartilhados em vez de copiar blocos.
+
+## Ao implementar ou revisar
+
+- Prefira composição e extensão do que já existe no projeto.
+- Não misture responsabilidades (ex.: UI + persistência + regras de negócio no mesmo arquivo).
+- Refatore duplicações quando surgirem, sem abstrações genéricas de uma linha.

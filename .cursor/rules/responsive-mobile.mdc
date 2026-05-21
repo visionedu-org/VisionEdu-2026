@@ -1,0 +1,27 @@
+---
+description: Design responsivo, mobile-first e testes em dispositivos reais
+globs: "**/*.{html,tsx,jsx,vue,css,scss}"
+alwaysApply: false
+---
+
+# Design responsivo e mobile-first
+
+## Multi-viewport
+
+- Layout correto em **mobile**, **tablet** e **desktop**.
+- Abordagem **mobile-first**: estilos base para telas pequenas; media queries para telas maiores.
+
+## Experiência touch
+
+- Áreas de toque **≥ 44×44 px** (ou equivalente em `rem`).
+- Espaçamento suficiente entre controles clicáveis para evitar toques acidentais.
+
+## Testes
+
+- Validar em dispositivos **reais** (iOS e Android), não apenas em simuladores do navegador.
+
+## Implementação
+
+- Unidades fluidas (`%`, `rem`, `clamp`) onde fizer sentido.
+- Evitar larguras fixas que quebrem em telas estreitas.
+- Testar orientação retrato e paisagem em formulários e navegação.
