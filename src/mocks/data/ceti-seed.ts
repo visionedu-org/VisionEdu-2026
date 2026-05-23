@@ -1,7 +1,7 @@
 import type { ClassGroup, School, User } from "@/types/domain";
 
 export const CETI_SCHOOL_ID = "d3b07384-d113-4956-a5cc-9c6f2c3d526e";
-export const EMEF_SCHOOL_ID = "e4c18495-e224-5067-b6dd-0d7f3e4d637f";
+const EMEF_SCHOOL_ID = "e4c18495-e224-5067-b6dd-0d7f3e4d637f";
 
 export const cetiSchool: School = {
   id: CETI_SCHOOL_ID,
@@ -10,7 +10,7 @@ export const cetiSchool: School = {
   city: "Vila Nova do Piauí, PI",
 };
 
-export const emefSchool: School = {
+const emefSchool: School = {
   id: EMEF_SCHOOL_ID,
   name: "EMEF João Batista de Sousa",
   gre: "16ª GRE",
@@ -39,7 +39,7 @@ export const cetiClasses: ClassGroup[] = buildClassesForSchool(
   "class-ceti"
 );
 
-export const emefClasses: ClassGroup[] = buildClassesForSchool(
+const emefClasses: ClassGroup[] = buildClassesForSchool(
   EMEF_SCHOOL_ID,
   "class-emef"
 );
@@ -48,10 +48,9 @@ export const pilotClasses: ClassGroup[] = [...cetiClasses, ...emefClasses];
 
 export const DEMO_STUDENT_EMAIL = "thiago.demo@escola.pi.gov.br";
 export const DEMO_STUDENT_PASSWORD = "senhaDemo123";
-export const DEMO_TEACHER_EMAIL = "regina.demo@escola.pi.gov.br";
-export const DEMO_TEACHER_PASSWORD = "senhaDemo123";
+const DEMO_TEACHER_EMAIL = "regina.demo@escola.pi.gov.br";
 
-export const demoStudent: User = {
+const demoStudent: User = {
   id: "4a7174e2-6cf0-449e-b98a-4933934375b4",
   name: "Thiago Silva (demo)",
   email: DEMO_STUDENT_EMAIL,
@@ -62,7 +61,7 @@ export const demoStudent: User = {
   class_identifier: "A",
 };
 
-export const demoTeacher: User = {
+const demoTeacher: User = {
   id: "8f3c2a1b-9d4e-4f5a-b6c7-8d9e0f1a2b3c",
   name: "Professora Regina (demo)",
   email: DEMO_TEACHER_EMAIL,

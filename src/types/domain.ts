@@ -13,7 +13,7 @@ export interface User {
   teacher_schools?: TeacherSchoolLink[];
 }
 
-export interface TeacherSchoolLink {
+interface TeacherSchoolLink {
   school_id: string;
   name: string;
 }
@@ -58,7 +58,7 @@ export interface LearningPathModule {
   activityId?: string;
 }
 
-export interface PendingActivitySummary {
+interface PendingActivitySummary {
   id: string;
   title: string;
   status: "not_started" | "in_progress";
@@ -74,12 +74,12 @@ export interface StudentDashboardData {
   pendingActivities: PendingActivitySummary[];
 }
 
-export interface McqOption {
+interface McqOption {
   id: string;
   text: string;
 }
 
-export interface ActivityQuestion {
+interface ActivityQuestion {
   id: string;
   prompt: string;
   options: McqOption[];
@@ -150,7 +150,7 @@ export interface BnccGapRow {
   difficulty: BnccDifficulty;
 }
 
-export type TeacherContentType = "text" | "video_link" | "pdf_upload";
+type TeacherContentType = "text" | "video_link" | "pdf_upload";
 
 export interface TeacherContent {
   id: string;
@@ -163,7 +163,7 @@ export interface TeacherContent {
   createdAt: string;
 }
 
-export interface TeacherActivityQuestionPayload {
+interface TeacherActivityQuestionPayload {
   prompt: string;
   options: [string, string, string, string];
   bnccCode: string;

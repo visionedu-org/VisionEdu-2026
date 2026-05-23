@@ -7,7 +7,7 @@ import { cetiSchool } from "@/mocks/data/ceti-seed";
 
 /** Demo activity — use in README deep links */
 export const DEMO_ACTIVITY_ID = "550e8400-e29b-41d4-a716-446655440000";
-export const DEMO_ACTIVITY_ID_2 = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
+const DEMO_ACTIVITY_ID_2 = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
 
 const mcqTemplate = (prefix: string, count: number) =>
   Array.from({ length: count }, (_, i) => ({

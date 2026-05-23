@@ -42,7 +42,3 @@ export function addActivity(
 export function getActivityById(id: string): Activity | undefined {
   return activities.get(id);
 }
-
-export function getCreatedActivitiesRecord(): Record<string, Activity> {
-  return Object.fromEntries(activities.entries());
-}

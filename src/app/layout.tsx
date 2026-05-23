@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Roboto, Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { MswProvider } from "@/components/providers/msw-provider";
 import { AuthHydration } from "@/components/providers/auth-hydration";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
@@ -51,11 +50,9 @@ export default function RootLayout({
               <ThemeToggle />
             </div>
           </header>
-          <MswProvider>
-            <AuthHydration>
-              <main className="flex-1 flex flex-col">{children}</main>
-            </AuthHydration>
-          </MswProvider>
+          <AuthHydration>
+            <main className="flex-1 flex flex-col">{children}</main>
+          </AuthHydration>
         </ThemeProvider>
       </body>
     </html>

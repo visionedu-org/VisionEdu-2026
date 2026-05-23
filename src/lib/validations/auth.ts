@@ -6,11 +6,11 @@ const activityCityValues = ACTIVITY_CITIES.map((c) => c.value) as [
   ...(typeof ACTIVITY_CITIES)[number]["value"][],
 ];
 
-export const activityCitySchema = z.enum(activityCityValues, {
+const activityCitySchema = z.enum(activityCityValues, {
   message: "Selecione uma cidade de atuação",
 });
 
-export const userRoleSchema = z.enum(["student", "teacher"]);
+const userRoleSchema = z.enum(["student", "teacher"]);
 
 export const loginSchema = z.object({
   email: z.string().email("Informe um e-mail válido"),
@@ -18,18 +18,12 @@ export const loginSchema = z.object({
   role: userRoleSchema,
 });
 
-export const classAssignmentSchema = z.object({
-  school_id: z.string().uuid(),
+const teacherClassInSchoolSchema = z.object({
   grade: z.enum(["1", "2", "3"]),
   class_identifier: z.string().min(1, "Selecione a turma"),
 });
 
-export const teacherClassInSchoolSchema = z.object({
-  grade: z.enum(["1", "2", "3"]),
-  class_identifier: z.string().min(1, "Selecione a turma"),
-});
-
-export const teacherSchoolBlockSchema = z.object({
+const teacherSchoolBlockSchema = z.object({
   school_id: z.string().uuid("Selecione uma escola"),
   classes: z
     .array(teacherClassInSchoolSchema)
@@ -42,8 +36,7 @@ const termsAcceptedSchema = z
     message: "Você precisa aceitar os termos para continuar",
   });
 
-/** Campos de cadastro de aluno (sem termos — usado na API). */
-export const registerStudentBaseSchema = z.object({
+const registerStudentBaseSchema = z.object({
   name: z.string().min(3, "Nome completo é obrigatório"),
   email: z.string().email("Informe um e-mail válido"),
   password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
@@ -64,8 +57,7 @@ function uniqueTeacherSchools(data: { schools: { school_id: string }[] }) {
   return new Set(ids).size === ids.length;
 }
 
-/** Campos de cadastro de professor (sem termos — usado na API). */
-export const registerTeacherBaseSchema = z.object({
+const registerTeacherBaseSchema = z.object({
   name: z.string().min(3, "Nome completo é obrigatório"),
   email: z.string().email("Informe um e-mail válido"),
   password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
@@ -96,5 +88,4 @@ export const registerTeacherSchema = registerTeacherBaseSchema
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterStudentFormValues = z.infer<typeof registerStudentSchema>;
 export type RegisterTeacherFormValues = z.infer<typeof registerTeacherSchema>;
-export type RegisterStudentApiPayload = z.infer<typeof registerStudentApiSchema>;
 export type RegisterTeacherApiPayload = z.infer<typeof registerTeacherApiSchema>;

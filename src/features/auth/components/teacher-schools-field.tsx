@@ -74,9 +74,6 @@ export function TeacherSchoolsField({
       {typeof errors === "object" && errors && !Array.isArray(errors) && (
         <p className="text-sm text-destructive">{String(errors.message ?? "")}</p>
       )}
-      {Array.isArray(errors) && errors.root && (
-        <p className="text-sm text-destructive">{errors.root.message}</p>
-      )}
 
       {schoolFields.map((schoolField, schoolIndex) => (
         <TeacherSchoolBlock
@@ -107,7 +104,7 @@ type TeacherSchoolBlockProps = {
   getClasses: ReturnType<typeof useCetiOptions>["getClasses"];
   canRemoveSchool: boolean;
   onRemoveSchool: () => void;
-  errors?: FieldErrors<RegisterTeacherFormValues>["schools"];
+  errors?: FieldErrors<RegisterTeacherFormValues["schools"][number]>;
 };
 
 function TeacherSchoolBlock({

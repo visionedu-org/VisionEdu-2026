@@ -3,7 +3,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AuthResponse, User, UserRole } from "@/types/domain";
-import { setSessionCookie } from "@/lib/session-cookie";
 
 interface AuthState {
   accessToken: string | null;
@@ -31,11 +30,6 @@ export const useAuthStore = create<AuthState>()(
           user: response.user,
           role: response.user.role,
           expiresAt,
-        });
-        setSessionCookie({
-          token: response.access_token,
-          role: response.user.role,
-          exp: expiresAt,
         });
       },
 

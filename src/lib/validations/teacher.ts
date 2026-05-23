@@ -8,7 +8,7 @@ export const TEACHER_DISCIPLINES = [
   "Geografia",
 ] as const;
 
-export const teacherContentTypeSchema = z.enum([
+const teacherContentTypeSchema = z.enum([
   "text",
   "video_link",
   "pdf_upload",

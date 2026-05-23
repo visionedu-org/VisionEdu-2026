@@ -7,7 +7,7 @@ import type {
   RegisterTeacherFormValues,
 } from "@/lib/validations/auth";
 
-export class AuthService {
+class AuthService {
   /** POST /api/v1/auth/login */
   async login(
     email: string,
