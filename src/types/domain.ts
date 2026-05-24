@@ -22,6 +22,7 @@ export interface TeacherClassAssignment {
   school_id: string;
   grade: string;
   class_identifier: string;
+  class_id?: string;
 }
 
 export interface School {

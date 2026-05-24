@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   registerTeacherSchema,
@@ -43,6 +43,9 @@ export function RegisterTeacherForm() {
       termsAccepted: false,
     },
   });
+
+  const city =
+    useWatch({ control: form.control, name: "city" }) ?? DEFAULT_ACTIVITY_CITY;
 
   async function onSubmit(values: RegisterTeacherFormValues) {
     setRootError(null);
@@ -132,7 +135,7 @@ export function RegisterTeacherForm() {
       </div>
 
       <ActivityCitySelect
-        value={form.watch("city")}
+        value={city}
         onChange={(v) =>
           form.setValue("city", v as RegisterTeacherFormValues["city"], {
             shouldValidate: true,
@@ -145,7 +148,6 @@ export function RegisterTeacherForm() {
       <TeacherSchoolsField
         control={form.control}
         register={form.register}
-        watch={form.watch}
         errors={form.formState.errors.schools}
       />
 

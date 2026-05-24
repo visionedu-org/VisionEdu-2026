@@ -1,6 +1,7 @@
 export const TEACHER_NAV_LINKS = [
   { href: "/teacher/dashboard", label: "Painel" },
   { href: "/teacher/turmas", label: "Turmas" },
+  { href: "/teacher/materiais", label: "Materiais enviados" },
   { href: "/teacher/conteudos/novo", label: "Novo material" },
   { href: "/teacher/diagnosticos/novo", label: "Novo diagnóstico" },
 ] as const;

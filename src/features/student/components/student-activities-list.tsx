@@ -13,6 +13,7 @@ export function StudentActivitiesList() {
     studentService
       .getDashboard()
       .then(setData)
+      .catch(() => setData(null))
       .finally(() => setLoading(false));
   }, []);
 

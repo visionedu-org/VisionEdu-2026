@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { resolveClassIdParam } from "@/lib/class-id-param";
 import { teacherService } from "@/services/teacher.service";
 import type { ClassDashboardData } from "@/types/domain";
 
@@ -46,6 +47,8 @@ export function ClassDashboard({ classId }: ClassDashboardProps) {
       </div>
     );
   }
+
+  const classUuid = resolveClassIdParam(classId);
 
   if (error || !data) {
     return (
@@ -108,8 +111,17 @@ export function ClassDashboard({ classId }: ClassDashboardProps) {
       </section>
 
       <div className="flex flex-wrap gap-3">
+        {classUuid && (
+          <Link
+            href={`/teacher/conteudos/novo?classId=${encodeURIComponent(classUuid)}`}
+          >
+            <Button className="min-h-11">Enviar material</Button>
+          </Link>
+        )}
         <Link href={`/teacher/turmas/${classId}/bncc`}>
-          <Button className="min-h-11">Ver lacunas BNCC</Button>
+          <Button variant="outline" className="min-h-11">
+            Ver lacunas BNCC
+          </Button>
         </Link>
         <Link href="/teacher/turmas">
           <Button variant="outline" className="min-h-11">

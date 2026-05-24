@@ -70,6 +70,7 @@ export function mapUserToDomain(record: UserWithRelations): User {
         school_id: a.class.schoolId,
         grade: a.class.grade,
         class_identifier: a.class.classIdentifier,
+        class_id: a.classId,
       })),
     };
   }

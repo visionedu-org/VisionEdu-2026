@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AuthResponse, User, UserRole } from "@/types/domain";
+import type { AuthResponse, TeacherClassAssignment, User, UserRole } from "@/types/domain";
 
 interface AuthState {
   accessToken: string | null;
@@ -13,6 +13,14 @@ interface AuthState {
   clearSession: () => void;
   isExpired: () => boolean;
   hydrateFromCookie: () => void;
+}
+
+const EMPTY_TEACHER_CLASSES: readonly TeacherClassAssignment[] = [];
+
+export function selectTeacherClasses(
+  state: AuthState
+): readonly TeacherClassAssignment[] {
+  return state.user?.teacher_classes ?? EMPTY_TEACHER_CLASSES;
 }
 
 export const useAuthStore = create<AuthState>()(

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   diagnosticFormSchema,
@@ -45,7 +45,7 @@ export function DiagnosticBuilder() {
     name: "questions",
   });
 
-  const grade = form.watch("grade");
+  const grade = useWatch({ control: form.control, name: "grade" }) ?? "2";
   const classes = getClasses(defaultSchoolId, grade);
 
   async function onSubmit(values: DiagnosticFormValues) {

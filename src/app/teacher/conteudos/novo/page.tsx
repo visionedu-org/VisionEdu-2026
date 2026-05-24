@@ -1,4 +1,4 @@
-import { ContentForm } from "@/features/teacher/components/content-form";
+import { NovoMaterialForm } from "@/features/teacher/components/novo-material-form";
 
 export default function NovoConteudoPage() {
   return (
@@ -6,10 +6,11 @@ export default function NovoConteudoPage() {
       <header className="space-y-1">
         <h1 className="text-2xl font-bold">Novo material</h1>
         <p className="text-sm text-muted-foreground">
-          Crie textos, links de vídeo ou registre um PDF (somente interface).
+          Envie textos, links de vídeo ou arquivos para turmas ou alunos
+          vinculados ao seu perfil.
         </p>
       </header>
-      <ContentForm />
+      <NovoMaterialForm />
     </div>
   );
 }

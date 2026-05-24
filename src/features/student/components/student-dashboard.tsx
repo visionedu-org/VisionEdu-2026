@@ -27,6 +27,11 @@ export function StudentDashboard() {
           setDashboard(dash);
           setModules(path.modules);
         }
+      } catch {
+        if (!cancelled) {
+          setDashboard(null);
+          setModules([]);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

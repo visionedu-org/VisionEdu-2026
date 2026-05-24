@@ -8,11 +8,12 @@ export const TEACHER_DISCIPLINES = [
   "Geografia",
 ] as const;
 
-const teacherContentTypeSchema = z.enum([
-  "text",
-  "video_link",
-  "pdf_upload",
-]);
+const teacherContentTypeSchema = z.enum(["text", "video_link", "file"]);
+
+const optionalStudentIdSchema = z.preprocess(
+  (value) => (value === "" || value === null ? undefined : value),
+  z.string().uuid("Selecione um aluno válido").optional()
+);
 
 export const contentFormSchema = z
   .object({
@@ -20,8 +21,11 @@ export const contentFormSchema = z
     description: z.string().min(1, "Descrição é obrigatória"),
     subject: z.enum(TEACHER_DISCIPLINES),
     grade: z.enum(["1", "2", "3"]),
-    class_identifier: z.string().min(1, "Selecione a turma"),
+    classId: z.string().uuid("Selecione uma turma válida"),
+    recipientMode: z.enum(["class", "student"]),
+    studentId: optionalStudentIdSchema,
     contentType: teacherContentTypeSchema,
+    bodyText: z.string().optional(),
     videoUrl: z.string().optional(),
   })
   .superRefine((data, ctx) => {
@@ -42,6 +46,36 @@ export const contentFormSchema = z
           code: "custom",
           message: "Informe um link válido",
           path: ["videoUrl"],
+        });
+        return;
+      }
+      if (!url.startsWith("https://")) {
+        ctx.addIssue({
+          code: "custom",
+          message: "O link deve começar com https://",
+          path: ["videoUrl"],
+        });
+      }
+    }
+
+    if (data.contentType === "text") {
+      const body = data.bodyText?.trim() ?? "";
+      if (body.length < 1) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Informe o conteúdo do material",
+          path: ["bodyText"],
+        });
+      }
+    }
+
+    if (data.recipientMode === "student") {
+      const studentId = data.studentId?.trim() ?? "";
+      if (!studentId) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Selecione o aluno destinatário",
+          path: ["studentId"],
         });
       }
     }
