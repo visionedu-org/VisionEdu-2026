@@ -1,7 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight, Users, BarChart3, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 import { useAuthStore } from "@/stores/auth-store";
 import type { TeacherClassAssignment } from "@/types/domain";
 
@@ -18,34 +27,110 @@ export default function TeacherDashboardPage() {
   const classes = user?.teacher_classes ?? [];
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold">Painel do professor</h1>
-        <p className="text-sm text-muted-foreground">
-          {user?.name} — visão geral das turmas vinculadas
-        </p>
-      </header>
+    <div className="space-y-8">
+      <PageHeader
+        title="Painel do professor"
+        description={`${user?.name ?? "Professor"} — visão geral das turmas vinculadas`}
+        action={
+          <Link href="/teacher/conteudos/novo">
+            <Button>
+              Novo conteúdo
+              <ArrowRight className="size-4" aria-hidden />
+            </Button>
+          </Link>
+        }
+      />
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Acesso rápido às turmas</h2>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader className="flex-row items-center gap-3 space-y-0">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Users className="size-5" aria-hidden />
+            </span>
+            <div>
+              <CardTitle>Turmas</CardTitle>
+              <CardDescription>Vinculadas ao seu perfil</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{classes.length}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex-row items-center gap-3 space-y-0">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-brand-green/15 text-emerald-700 dark:text-brand-green">
+              <BarChart3 className="size-5" aria-hidden />
+            </span>
+            <div>
+              <CardTitle>BNCC</CardTitle>
+              <CardDescription>Lacunas e recomposição</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Link
+              href="/teacher/turmas"
+              className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              Ver turmas →
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="sm:col-span-2 lg:col-span-1">
+          <CardHeader className="flex-row items-center gap-3 space-y-0">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-brand-yellow/20 text-amber-800 dark:text-brand-yellow">
+              <FileText className="size-5" aria-hidden />
+            </span>
+            <div>
+              <CardTitle>Conteúdos</CardTitle>
+              <CardDescription>Materiais e diagnósticos</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Link href="/teacher/conteudos">
+              <Button variant="outline" size="sm">
+                Gerenciar conteúdos
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-bold">Acesso rápido às turmas</h2>
         {classes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Nenhuma turma vinculada. Cadastre turmas no seu perfil.
-          </p>
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Nenhuma turma vinculada.{" "}
+                <Link
+                  href="/teacher/perfil"
+                  className="font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  Configure seu perfil
+                </Link>
+                .
+              </p>
+            </CardContent>
+          </Card>
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid gap-4 sm:grid-cols-2">
             {classes.map((c) => {
               const slug = classSlug(c);
               return (
                 <li key={slug}>
-                  <Link
-                    href={`/teacher/turmas/${slug}`}
-                    className="flex min-h-11 flex-col justify-center rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary/40 hover:bg-muted/30"
-                  >
-                    <span className="font-semibold">{classLabel(c)}</span>
-                    <span className="text-sm text-muted-foreground">
-                      Média, erros frequentes e BNCC
-                    </span>
+                  <Link href={`/teacher/turmas/${slug}`}>
+                    <Card className="h-full hover:border-primary/30">
+                      <CardHeader>
+                        <CardTitle>{classLabel(c)}</CardTitle>
+                        <CardDescription>
+                          {c.materias && c.materias.length > 0
+                            ? c.materias.join(", ")
+                            : "Média, erros frequentes e BNCC"}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
                   </Link>
                 </li>
               );
@@ -53,20 +138,22 @@ export default function TeacherDashboardPage() {
           </ul>
         )}
         <Link href="/teacher/turmas">
-          <Button variant="outline" className="min-h-11">
-            Ver todas as turmas
-          </Button>
+          <Button variant="outline">Ver todas as turmas</Button>
         </Link>
       </section>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 min-h-[120px]">
-          <h2 className="font-semibold">Tempo real</h2>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Disponível na Fase 5 — acompanhamento ao vivo da turma na sala de aula.
+      <Card className="border-dashed bg-muted/30">
+        <CardHeader>
+          <CardTitle>Tempo real</CardTitle>
+          <CardDescription>Fase 5 — em breve</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Acompanhamento ao vivo da turma na sala de aula estará disponível na
+            próxima fase do piloto.
           </p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

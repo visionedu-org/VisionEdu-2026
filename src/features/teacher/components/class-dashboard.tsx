@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { resolveClassIdParam } from "@/lib/class-id-param";
 import { teacherService } from "@/services/teacher.service";
 import type { ClassDashboardData } from "@/types/domain";
+import { ClassStudentsList } from "./class-students-list";
 
 interface ClassDashboardProps {
   classId: string;
@@ -71,23 +72,18 @@ export function ClassDashboard({ classId }: ClassDashboardProps) {
       <header className="space-y-1">
         <h1 className="text-2xl font-bold">{data.classLabel}</h1>
         <p className="text-sm text-muted-foreground">
-          {data.studentCount} alunos · dados simulados (mock)
+          Visão geral e alunos vinculados
         </p>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="text-sm font-medium text-muted-foreground">Média da turma</h2>
-          <p className="mt-1 text-3xl font-bold text-primary">
-            {data.averageScore.toFixed(1)}
-            <span className="text-base font-normal text-muted-foreground"> / 10</span>
-          </p>
-        </div>
+      <ClassStudentsList classId={classId} />
 
-        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="text-sm font-medium text-muted-foreground">Total de alunos</h2>
-          <p className="mt-1 text-3xl font-bold">{data.studentCount}</p>
-        </div>
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:max-w-xs">
+        <h2 className="text-sm font-medium text-muted-foreground">Média da turma</h2>
+        <p className="mt-1 text-3xl font-bold text-primary">
+          {data.averageScore.toFixed(1)}
+          <span className="text-base font-normal text-muted-foreground"> / 10</span>
+        </p>
       </div>
 
       <section className="rounded-xl border border-border bg-card p-4 shadow-sm">
