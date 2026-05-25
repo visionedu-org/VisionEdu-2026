@@ -57,6 +57,7 @@ export function applyClientQuestionFilters(
 
     if (filters.answered === "answered" && !answered) return false;
     if (filters.answered === "unanswered" && answered) return false;
+    if (filters.answered === "favorites" && !favoriteKeys.has(key)) return false;
 
     if (filters.favorites && !favoriteKeys.has(key)) return false;
     if (filters.review && !reviewKeys.has(key)) return false;

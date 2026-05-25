@@ -66,17 +66,20 @@ export interface EnemQuestionsResponse {
 }
 
 export interface EnemQuestionFilters {
-  year: number;
+  /** Número do ano da prova ou `"all"` para todas as provas disponíveis. */
+  year: number | "all";
   discipline?: EnemDiscipline | "";
   knowledgeArea?: EnemKnowledgeArea | "";
   difficulty?: EnemDifficulty | "";
   institution?: EnemInstitution | "";
   language?: string;
   hasImage?: boolean;
-  answered?: "all" | "answered" | "unanswered";
+  answered?: "all" | "answered" | "unanswered" | "favorites";
   favorites?: boolean;
   review?: boolean;
   q?: string;
+  /** Embaralha a lista após aplicar filtros (ordem estável até novo apply). */
+  shuffle?: boolean;
 }
 
 export interface EnemQuestionsQuery {

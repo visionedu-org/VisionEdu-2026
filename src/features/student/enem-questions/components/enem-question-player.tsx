@@ -18,20 +18,17 @@ import { Button } from "@/components/ui/button";
 import { EnemQuestionAlternatives } from "./enem-question-alternatives";
 import { EnemQuestionContext } from "./enem-question-context";
 import { EnemQuestionFeedback } from "./enem-question-feedback";
-import { EnemSimulationTimer } from "./enem-simulation-timer";
 import { useEnemProgress } from "../hooks/use-enem-progress";
 
 interface EnemQuestionPlayerProps {
   questions: EnemQuestion[];
   initialIndex: number;
-  simulationMode: boolean;
   onClose: () => void;
 }
 
 export function EnemQuestionPlayer({
   questions,
   initialIndex,
-  simulationMode,
   onClose,
 }: EnemQuestionPlayerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -66,7 +63,6 @@ export function EnemQuestionPlayer({
         question={question}
         currentIndex={safeIndex}
         total={total}
-        simulationMode={simulationMode}
         onClose={onClose}
         onNavigate={setCurrentIndex}
       />
@@ -78,7 +74,6 @@ interface EnemQuestionPlayerBodyProps {
   question: EnemQuestion;
   currentIndex: number;
   total: number;
-  simulationMode: boolean;
   onClose: () => void;
   onNavigate: (index: number) => void;
 }
@@ -87,7 +82,6 @@ function EnemQuestionPlayerBody({
   question,
   currentIndex,
   total,
-  simulationMode,
   onClose,
   onNavigate,
 }: EnemQuestionPlayerBodyProps) {
@@ -110,7 +104,6 @@ function EnemQuestionPlayerBody({
 
   const progress = total > 0 ? ((currentIndex + 1) / total) * 100 : 0;
   const record = revealed ? getAnswer(question) : undefined;
-  const hideGabarito = simulationMode && !revealed;
 
   function handleConfirm() {
     if (!selected || revealed) return;
@@ -123,7 +116,7 @@ function EnemQuestionPlayerBody({
   }
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-lg flex-col overflow-hidden p-4">
+    <div className="flex h-full w-full flex-col overflow-hidden">
       <button
         type="button"
         onClick={onClose}
@@ -176,10 +169,6 @@ function EnemQuestionPlayerBody({
         ))}
       </div>
 
-      <div className="shrink-0">
-        <EnemSimulationTimer key={simulationMode ? "sim-on" : "sim-off"} enabled={simulationMode} />
-      </div>
-
       <div
         className="mt-4 h-2 shrink-0 overflow-hidden rounded-full bg-muted"
         role="progressbar"
@@ -205,14 +194,10 @@ function EnemQuestionPlayerBody({
         />
 
         <EnemQuestionAlternatives
-          alternatives={
-            hideGabarito
-              ? question.alternatives.map((a) => ({ ...a, isCorrect: false }))
-              : question.alternatives
-          }
+          alternatives={question.alternatives}
           selected={selected}
           disabled={revealed}
-          reveal={revealed && !hideGabarito}
+          reveal={revealed}
           onSelect={setSelected}
         />
 

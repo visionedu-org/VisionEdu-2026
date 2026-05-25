@@ -30,7 +30,7 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const limit = Math.min(
       Math.max(Number.parseInt(searchParams.get("limit") ?? "10", 10) || 10, 1),
-      50
+      90
     );
     const offset = Math.max(
       Number.parseInt(searchParams.get("offset") ?? "0", 10) || 0,

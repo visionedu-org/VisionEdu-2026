@@ -46,6 +46,10 @@ export function EnemQuestionList({
 
   return (
     <div className="space-y-3">
+      <p className="text-sm text-muted-foreground" aria-live="polite">
+        Exibindo {questions.length}{" "}
+        {questions.length === 1 ? "questão" : "questões"}
+      </p>
       <ul className="space-y-3" aria-label="Lista de questões">
         {questions.map((question, index) => (
           <li key={`${question.year}-${question.index}-${question.language ?? ""}`}>

@@ -52,4 +52,16 @@ export const KNOWLEDGE_AREA_DISCIPLINES: Record<
 
 export const DEFAULT_QUESTIONS_PAGE_SIZE = 10;
 
+export const MIN_QUESTIONS_PAGE_SIZE = 1;
+export const MAX_QUESTIONS_PAGE_SIZE = 90;
+
+/** Limita ao intervalo aceito pela API (1–90). */
+export function clampQuestionsPageSize(size: number): number {
+  const parsed = Number.isFinite(size) ? Math.round(size) : DEFAULT_QUESTIONS_PAGE_SIZE;
+  return Math.min(
+    MAX_QUESTIONS_PAGE_SIZE,
+    Math.max(MIN_QUESTIONS_PAGE_SIZE, parsed)
+  );
+}
+
 export const SEARCH_DEBOUNCE_MS = 300;

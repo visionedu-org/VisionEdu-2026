@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EnemErrorStateProps {
   message: string;
@@ -7,21 +8,15 @@ interface EnemErrorStateProps {
 
 export function EnemErrorState({ message, onRetry }: EnemErrorStateProps) {
   return (
-    <div
-      role="alert"
-      className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-4"
-    >
-      <p className="text-sm text-destructive">{message}</p>
-      {onRetry && (
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-3 min-h-11"
-          onClick={onRetry}
-        >
-          Tentar novamente
-        </Button>
-      )}
-    </div>
+    <Alert variant="destructive">
+      <AlertDescription className="flex flex-col gap-3">
+        <span>{message}</span>
+        {onRetry && (
+          <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+            Tentar novamente
+          </Button>
+        )}
+      </AlertDescription>
+    </Alert>
   );
 }

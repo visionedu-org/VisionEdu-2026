@@ -22,24 +22,54 @@ export function normalizeEnemFilterPatch(
   }
   if (patch.answered !== undefined) {
     next.answered = patch.answered;
+    next.favorites = patch.answered === "favorites" ? true : undefined;
+  }
+
+  if ("shuffle" in patch) {
+    next.shuffle = patch.shuffle;
   }
 
   return next;
+}
+
+export function isAllYearsMode(filters: EnemQuestionFilters): boolean {
+  return filters.year === "all";
 }
 
 export function hasActiveClientFilters(filters: EnemQuestionFilters): boolean {
   return Boolean(
     filters.discipline ||
       filters.difficulty ||
-      (filters.answered && filters.answered !== "all")
+      filters.favorites ||
+      (filters.answered &&
+        filters.answered !== "all" &&
+        filters.answered !== "favorites")
   );
+}
+
+export function isFavoritesOnlyMode(filters: EnemQuestionFilters): boolean {
+  return filters.favorites === true || filters.answered === "favorites";
+}
+
+/** Valor do select Ano/Prova (`""` = Todas). */
+export function getYearFilterSelectValue(filters: EnemQuestionFilters): string {
+  return filters.year === "all" ? "" : String(filters.year);
+}
+
+export function parseYearFilterSelectValue(value: string): number | "all" {
+  if (value === "") return "all";
+  const year = Number(value);
+  return Number.isFinite(year) ? year : "all";
 }
 
 export function resolveExamYear(
   filters: EnemQuestionFilters,
   exams: EnemExam[],
   fallbackYear: number
-): number {
-  if (exams.some((e) => e.year === filters.year)) return filters.year;
+): number | "all" {
+  if (filters.year === "all") return "all";
+  if (typeof filters.year === "number" && exams.some((e) => e.year === filters.year)) {
+    return filters.year;
+  }
   return exams[0]?.year ?? fallbackYear;
 }
