@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { User } from "@/types/domain";
 import { cargoToRole } from "./cargo";
+import type { TeacherDiscipline } from "@/lib/validations/teacher";
 
 const userWithStudent = {
   studentProfile: {
@@ -20,6 +21,11 @@ const userWithTeacher = {
         },
       },
       assignments: {
+        include: {
+          class: true,
+        },
+      },
+      classMaterias: {
         include: {
           class: true,
         },
@@ -56,6 +62,14 @@ export function mapUserToDomain(record: UserWithRelations): User {
 
   if (role === "teacher" && record.teacherProfile) {
     const tp = record.teacherProfile;
+    const materiasByClass = new Map<string, TeacherDiscipline[]>();
+
+    for (const row of tp.classMaterias ?? []) {
+      const current = materiasByClass.get(row.classId) ?? [];
+      current.push(row.materia as TeacherDiscipline);
+      materiasByClass.set(row.classId, current);
+    }
+
     return {
       id: record.id,
       name: record.name,
@@ -71,6 +85,7 @@ export function mapUserToDomain(record: UserWithRelations): User {
         grade: a.class.grade,
         class_identifier: a.class.classIdentifier,
         class_id: a.classId,
+        materias: materiasByClass.get(a.classId) ?? [],
       })),
     };
   }

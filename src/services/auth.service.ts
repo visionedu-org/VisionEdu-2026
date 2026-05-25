@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import { AUTH_API } from "@/lib/api/auth-paths";
-import type { AuthResponse, UserRole } from "@/types/domain";
+import type { AuthResponse } from "@/types/domain";
 import type {
   LoginFormValues,
   RegisterStudentFormValues,
@@ -8,21 +8,16 @@ import type {
 } from "@/lib/validations/auth";
 
 class AuthService {
-  /** POST /api/v1/auth/login */
-  async login(
-    email: string,
-    password: string,
-    role: UserRole
-  ): Promise<AuthResponse> {
+  /** POST /api/v1/auth/login — role inferida pelo servidor a partir do cadastro */
+  async login(email: string, password: string): Promise<AuthResponse> {
     return apiClient.post<AuthResponse>(AUTH_API.login, {
       email,
       password,
-      role,
     });
   }
 
   async loginWithForm(values: LoginFormValues): Promise<AuthResponse> {
-    return this.login(values.email, values.password, values.role);
+    return this.login(values.email, values.password);
   }
 
   /** POST /api/v1/auth/register — aluno */

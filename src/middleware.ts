@@ -36,8 +36,20 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const session = await parseSession(request);
 
+  if (pathname === "/") {
+    if (session) {
+      const dest =
+        session.role === "student"
+          ? "/student/dashboard"
+          : "/teacher/dashboard";
+      return NextResponse.redirect(new URL(dest, request.url));
+    }
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   const isAuthRoute =
     pathname === "/login" ||
+    pathname === "/register" ||
     pathname.startsWith("/register/") ||
     pathname === "/termos" ||
     pathname === "/privacidade";
@@ -70,7 +82,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/login",
+    "/register",
     "/register/:path*",
     "/termos",
     "/privacidade",

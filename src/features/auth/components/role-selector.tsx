@@ -14,7 +14,7 @@ export function RoleSelector({ value, onChange }: RoleSelectorProps) {
       <legend className="text-sm font-medium text-foreground">
         Tipo de acesso
       </legend>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/50 p-1">
         {(
           [
             { id: "student" as const, label: "Aluno" },
@@ -24,10 +24,10 @@ export function RoleSelector({ value, onChange }: RoleSelectorProps) {
           <label
             key={option.id}
             className={cn(
-              "flex min-h-11 cursor-pointer items-center justify-center rounded-lg border px-3 text-sm font-medium transition-colors",
+              "flex min-h-11 cursor-pointer items-center justify-center rounded-lg px-3 text-sm font-semibold fluent-transition",
               value === option.id
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-background hover:bg-muted"
+                ? "bg-card text-primary shadow-fluent-sm"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             <input

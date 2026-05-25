@@ -10,6 +10,7 @@ interface AuthState {
   role: UserRole | null;
   expiresAt: number | null;
   setSession: (response: AuthResponse) => void;
+  updateUser: (user: User) => void;
   clearSession: () => void;
   isExpired: () => boolean;
   hydrateFromCookie: () => void;
@@ -39,6 +40,10 @@ export const useAuthStore = create<AuthState>()(
           role: response.user.role,
           expiresAt,
         });
+      },
+
+      updateUser: (user) => {
+        set({ user, role: user.role });
       },
 
       clearSession: () => {

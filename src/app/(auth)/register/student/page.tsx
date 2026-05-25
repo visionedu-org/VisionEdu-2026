@@ -1,9 +1,5 @@
-import { RegisterStudentForm } from "@/features/auth/components/register-student-form";
+import { redirect } from "next/navigation";
 
-export default function RegisterStudentPage() {
-  return (
-    <div className="py-8 px-4">
-      <RegisterStudentForm />
-    </div>
-  );
+export default function RegisterStudentRedirectPage() {
+  redirect("/register?role=student");
 }

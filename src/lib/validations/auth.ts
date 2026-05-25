@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ACTIVITY_CITIES } from "@/lib/constants/activity-cities";
+import { teacherSchoolsPayloadSchema } from "@/lib/validations/teacher-assignments";
 
 const activityCityValues = ACTIVITY_CITIES.map((c) => c.value) as [
   (typeof ACTIVITY_CITIES)[number]["value"],
@@ -10,24 +11,9 @@ const activityCitySchema = z.enum(activityCityValues, {
   message: "Selecione uma cidade de atuação",
 });
 
-const userRoleSchema = z.enum(["student", "teacher"]);
-
 export const loginSchema = z.object({
   email: z.string().email("Informe um e-mail válido"),
   password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
-  role: userRoleSchema,
-});
-
-const teacherClassInSchoolSchema = z.object({
-  grade: z.enum(["1", "2", "3"]),
-  class_identifier: z.string().min(1, "Selecione a turma"),
-});
-
-const teacherSchoolBlockSchema = z.object({
-  school_id: z.string().uuid("Selecione uma escola"),
-  classes: z
-    .array(teacherClassInSchoolSchema)
-    .min(1, "Adicione ao menos uma turma nesta escola"),
 });
 
 const termsAcceptedSchema = z
@@ -52,38 +38,19 @@ export const registerStudentSchema = registerStudentBaseSchema.extend({
 
 export const registerStudentApiSchema = registerStudentBaseSchema;
 
-function uniqueTeacherSchools(data: { schools: { school_id: string }[] }) {
-  const ids = data.schools.map((s) => s.school_id);
-  return new Set(ids).size === ids.length;
-}
-
 const registerTeacherBaseSchema = z.object({
   name: z.string().min(3, "Nome completo é obrigatório"),
   email: z.string().email("Informe um e-mail válido"),
   password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
   city: activityCitySchema,
-  schools: z
-    .array(teacherSchoolBlockSchema)
-    .min(1, "Selecione ao menos uma escola")
-    .max(10),
+  schools: teacherSchoolsPayloadSchema,
 });
 
-export const registerTeacherApiSchema = registerTeacherBaseSchema.refine(
-  uniqueTeacherSchools,
-  {
-    message: "Cada escola deve ser selecionada apenas uma vez",
-    path: ["schools"],
-  }
-);
+export const registerTeacherApiSchema = registerTeacherBaseSchema;
 
-export const registerTeacherSchema = registerTeacherBaseSchema
-  .extend({
-    termsAccepted: termsAcceptedSchema,
-  })
-  .refine(uniqueTeacherSchools, {
-    message: "Cada escola deve ser selecionada apenas uma vez",
-    path: ["schools"],
-  });
+export const registerTeacherSchema = registerTeacherBaseSchema.extend({
+  termsAccepted: termsAcceptedSchema,
+});
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterStudentFormValues = z.infer<typeof registerStudentSchema>;

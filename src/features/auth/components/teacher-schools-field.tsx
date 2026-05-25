@@ -1,27 +1,70 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import {
   useFieldArray,
   useWatch,
   type Control,
   type FieldErrors,
   type UseFormRegister,
+  type UseFormSetValue,
 } from "react-hook-form";
-import type { RegisterTeacherFormValues } from "@/lib/validations/auth";
+import { teacherClassKey } from "@/lib/teacher-class-key";
+import { getAvailableMaterias } from "@/lib/materias-catalog";
+import {
+  defaultMateriasForClass,
+  type TeacherClassAssignmentInput,
+  type TeacherSchoolsPayload,
+} from "@/lib/validations/teacher-assignments";
+import type { TeacherDiscipline } from "@/lib/validations/teacher";
 import { useCetiOptions } from "@/hooks/use-ceti-options";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CETI_SCHOOL_ID } from "@/mocks/data/ceti-seed";
 
-type TeacherSchoolsFieldProps = {
-  control: Control<RegisterTeacherFormValues>;
-  register: UseFormRegister<RegisterTeacherFormValues>;
-  errors?: FieldErrors<RegisterTeacherFormValues>["schools"];
+export type TeacherAssignmentsFormValues = {
+  schools: TeacherSchoolsPayload;
 };
+
+type TeacherSchoolsFieldProps = {
+  control: Control<TeacherAssignmentsFormValues>;
+  register: UseFormRegister<TeacherAssignmentsFormValues>;
+  setValue: UseFormSetValue<TeacherAssignmentsFormValues>;
+  errors?: FieldErrors<TeacherAssignmentsFormValues>["schools"];
+};
+
+function findFirstAvailableClass(
+  schoolId: string,
+  grades: readonly string[],
+  getClasses: ReturnType<typeof useCetiOptions>["getClasses"],
+  selected: Array<{ grade: string; class_identifier: string }>
+): TeacherClassAssignmentInput | null {
+  const selectedKeys = new Set(
+    selected.map((entry) =>
+      teacherClassKey(entry.grade, entry.class_identifier)
+    )
+  );
+
+  for (const grade of grades) {
+    for (const cls of getClasses(schoolId, grade)) {
+      const key = teacherClassKey(grade, cls.class_identifier);
+      if (!selectedKeys.has(key)) {
+        return {
+          grade: grade as "1" | "2" | "3",
+          class_identifier: cls.class_identifier,
+          materias: defaultMateriasForClass(schoolId, grade),
+        };
+      }
+    }
+  }
+
+  return null;
+}
 
 export function TeacherSchoolsField({
   control,
   register,
+  setValue,
   errors,
 }: TeacherSchoolsFieldProps) {
   const { schools: schoolOptions, grades, getClasses } = useCetiOptions();
@@ -37,7 +80,7 @@ export function TeacherSchoolsField({
 
   const schools =
     useWatch({ control, name: "schools" }) ??
-    ([] as RegisterTeacherFormValues["schools"]);
+    ([] as TeacherSchoolsPayload);
   const selectedSchoolIds = schools.map((s) => s.school_id);
 
   function availableSchoolsForIndex(index: number) {
@@ -55,14 +98,27 @@ export function TeacherSchoolsField({
           type="button"
           variant="outline"
           size="sm"
-          onClick={() =>
+          onClick={() => {
+            const nextSchoolId =
+              schoolOptions.find((s) => !selectedSchoolIds.includes(s.id))
+                ?.id ?? CETI_SCHOOL_ID;
+            const nextClass = findFirstAvailableClass(
+              nextSchoolId,
+              grades,
+              getClasses,
+              []
+            );
             appendSchool({
-              school_id: schoolOptions.find(
-                (s) => !selectedSchoolIds.includes(s.id)
-              )?.id ?? CETI_SCHOOL_ID,
-              classes: [{ grade: "2", class_identifier: "A" }],
-            })
-          }
+              school_id: nextSchoolId,
+              classes: [
+                nextClass ?? {
+                  grade: "2",
+                  class_identifier: "A",
+                  materias: defaultMateriasForClass(nextSchoolId, "2"),
+                },
+              ],
+            });
+          }}
           disabled={
             schoolFields.length >= schoolOptions.length ||
             schoolFields.length >= 10
@@ -81,6 +137,7 @@ export function TeacherSchoolsField({
           key={schoolField.id}
           control={control}
           register={register}
+          setValue={setValue}
           schoolIndex={schoolIndex}
           schoolOptions={availableSchoolsForIndex(schoolIndex)}
           grades={grades}
@@ -95,20 +152,22 @@ export function TeacherSchoolsField({
 }
 
 type TeacherSchoolBlockProps = {
-  control: Control<RegisterTeacherFormValues>;
-  register: UseFormRegister<RegisterTeacherFormValues>;
+  control: Control<TeacherAssignmentsFormValues>;
+  register: UseFormRegister<TeacherAssignmentsFormValues>;
+  setValue: UseFormSetValue<TeacherAssignmentsFormValues>;
   schoolIndex: number;
   schoolOptions: Array<{ id: string; name: string }>;
   grades: readonly string[];
   getClasses: ReturnType<typeof useCetiOptions>["getClasses"];
   canRemoveSchool: boolean;
   onRemoveSchool: () => void;
-  errors?: FieldErrors<RegisterTeacherFormValues["schools"][number]>;
+  errors?: FieldErrors<TeacherSchoolsPayload[number]>;
 };
 
 function TeacherSchoolBlock({
   control,
   register,
+  setValue,
   schoolIndex,
   schoolOptions,
   grades,
@@ -123,6 +182,12 @@ function TeacherSchoolBlock({
       name: `schools.${schoolIndex}.school_id`,
     }) ?? "";
 
+  const schoolClasses =
+    useWatch({
+      control,
+      name: `schools.${schoolIndex}.classes`,
+    }) ?? [];
+
   const {
     fields: classFields,
     append: appendClass,
@@ -131,6 +196,13 @@ function TeacherSchoolBlock({
     control,
     name: `schools.${schoolIndex}.classes`,
   });
+
+  const nextAvailableClass = findFirstAvailableClass(
+    schoolId,
+    grades,
+    getClasses,
+    schoolClasses
+  );
 
   return (
     <div className="space-y-3 rounded-lg border border-border p-3">
@@ -176,10 +248,12 @@ function TeacherSchoolBlock({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() =>
-              appendClass({ grade: "2", class_identifier: "B" })
-            }
-            disabled={classFields.length >= 6}
+            onClick={() => {
+              if (nextAvailableClass) {
+                appendClass(nextAvailableClass);
+              }
+            }}
+            disabled={!nextAvailableClass}
           >
             Adicionar turma
           </Button>
@@ -193,14 +267,21 @@ function TeacherSchoolBlock({
           <TeacherClassRow
             key={classField.id}
             control={control}
+            setValue={setValue}
             register={register}
             schoolIndex={schoolIndex}
             classIndex={classIndex}
             schoolId={schoolId}
             grades={grades}
             getClasses={getClasses}
+            siblingClasses={schoolClasses}
             canRemove={classFields.length > 1}
             onRemove={() => removeClass(classIndex)}
+            errors={
+              Array.isArray(errors?.classes)
+                ? errors.classes[classIndex]
+                : undefined
+            }
           />
         ))}
       </div>
@@ -209,38 +290,130 @@ function TeacherSchoolBlock({
 }
 
 type TeacherClassRowProps = {
-  control: Control<RegisterTeacherFormValues>;
-  register: UseFormRegister<RegisterTeacherFormValues>;
+  control: Control<TeacherAssignmentsFormValues>;
+  register: UseFormRegister<TeacherAssignmentsFormValues>;
+  setValue: UseFormSetValue<TeacherAssignmentsFormValues>;
   schoolIndex: number;
   classIndex: number;
   schoolId: string;
   grades: readonly string[];
   getClasses: ReturnType<typeof useCetiOptions>["getClasses"];
+  siblingClasses: TeacherClassAssignmentInput[];
   canRemove: boolean;
   onRemove: () => void;
+  errors?: FieldErrors<TeacherClassAssignmentInput>;
 };
 
 function TeacherClassRow({
   control,
   register,
+  setValue,
   schoolIndex,
   classIndex,
   schoolId,
   grades,
   getClasses,
+  siblingClasses,
   canRemove,
   onRemove,
+  errors,
 }: TeacherClassRowProps) {
   const grade =
     useWatch({
       control,
       name: `schools.${schoolIndex}.classes.${classIndex}.grade`,
     }) ?? "2";
-  const classOptions = getClasses(schoolId, grade);
+  const classIdentifier =
+    useWatch({
+      control,
+      name: `schools.${schoolIndex}.classes.${classIndex}.class_identifier`,
+    }) ?? "A";
+  const selectedMateriasRaw = useWatch({
+    control,
+    name: `schools.${schoolIndex}.classes.${classIndex}.materias`,
+  });
+  const selectedMaterias = useMemo(
+    () => (selectedMateriasRaw ?? []) as TeacherDiscipline[],
+    [selectedMateriasRaw]
+  );
+
+  const materiasPath =
+    `schools.${schoolIndex}.classes.${classIndex}.materias` as const;
+
+  const classOptions = getClasses(schoolId, grade).filter((cls) => {
+    const isSelectedElsewhere = siblingClasses.some(
+      (entry, index) =>
+        index !== classIndex &&
+        teacherClassKey(entry.grade, entry.class_identifier) ===
+          teacherClassKey(grade, cls.class_identifier)
+    );
+    return !isSelectedElsewhere || cls.class_identifier === classIdentifier;
+  });
+
+  const availableMaterias = getAvailableMaterias(schoolId, grade);
+
+  useEffect(() => {
+    if (!schoolId || classOptions.length === 0) return;
+
+    const isDuplicate = siblingClasses.some(
+      (entry, index) =>
+        index !== classIndex &&
+        teacherClassKey(entry.grade, entry.class_identifier) ===
+          teacherClassKey(grade, classIdentifier)
+    );
+    const isAvailable = classOptions.some(
+      (cls) => cls.class_identifier === classIdentifier
+    );
+
+    if (isDuplicate || !isAvailable) {
+      const fallback = classOptions[0];
+      if (fallback && fallback.class_identifier !== classIdentifier) {
+        setValue(
+          `schools.${schoolIndex}.classes.${classIndex}.class_identifier`,
+          fallback.class_identifier,
+          { shouldValidate: true }
+        );
+      }
+    }
+  }, [
+    schoolId,
+    grade,
+    classIdentifier,
+    classOptions,
+    siblingClasses,
+    schoolIndex,
+    classIndex,
+    setValue,
+  ]);
+
+  useEffect(() => {
+    if (!schoolId) return;
+    const allowed = getAvailableMaterias(schoolId, grade);
+    const compatible = selectedMaterias.filter((m) => allowed.includes(m));
+    const next =
+      compatible.length > 0
+        ? compatible
+        : defaultMateriasForClass(schoolId, grade);
+    if (
+      next.length !== selectedMaterias.length ||
+      next.some((m, i) => m !== selectedMaterias[i])
+    ) {
+      setValue(materiasPath, next, { shouldValidate: true });
+    }
+  }, [schoolId, grade, selectedMaterias, materiasPath, setValue]);
+
+  function toggleMateria(materia: TeacherDiscipline) {
+    const exists = selectedMaterias.includes(materia);
+    const next = exists
+      ? selectedMaterias.filter((entry) => entry !== materia)
+      : [...selectedMaterias, materia];
+    if (next.length === 0) return;
+    setValue(materiasPath, next, { shouldValidate: true });
+  }
 
   return (
-    <div className="grid grid-cols-2 gap-2 rounded-md bg-muted/30 p-2">
-      <div className="col-span-2 flex items-center justify-between">
+    <div className="space-y-2 rounded-md bg-muted/30 p-2">
+      <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">
           Turma {classIndex + 1}
         </span>
@@ -250,28 +423,60 @@ function TeacherClassRow({
           </Button>
         )}
       </div>
-      <select
-        className="min-h-11 rounded-lg border border-input bg-background px-2 text-sm"
-        {...register(`schools.${schoolIndex}.classes.${classIndex}.grade`)}
-      >
-        {grades.map((g) => (
-          <option key={g} value={g}>
-            {g}º ano
-          </option>
-        ))}
-      </select>
-      <select
-        className="min-h-11 rounded-lg border border-input bg-background px-2 text-sm"
-        {...register(
-          `schools.${schoolIndex}.classes.${classIndex}.class_identifier`
+      <div className="grid grid-cols-2 gap-2">
+        <select
+          className="min-h-11 rounded-lg border border-input bg-background px-2 text-sm"
+          {...register(`schools.${schoolIndex}.classes.${classIndex}.grade`)}
+        >
+          {grades.map((g) => (
+            <option key={g} value={g}>
+              {g}º ano
+            </option>
+          ))}
+        </select>
+        <select
+          className="min-h-11 rounded-lg border border-input bg-background px-2 text-sm"
+          {...register(
+            `schools.${schoolIndex}.classes.${classIndex}.class_identifier`
+          )}
+        >
+          {classOptions.map((c) => (
+            <option key={c.id} value={c.class_identifier}>
+              Turma {c.class_identifier}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-medium text-muted-foreground">
+          Matérias nesta turma
+        </legend>
+        <div className="flex flex-wrap gap-2">
+          {availableMaterias.map((materia) => {
+            const checked = selectedMaterias.includes(materia);
+            return (
+              <label
+                key={materia}
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  className="size-4"
+                  checked={checked}
+                  onChange={() => toggleMateria(materia)}
+                />
+                {materia}
+              </label>
+            );
+          })}
+        </div>
+        {errors?.materias && (
+          <p className="text-sm text-destructive">
+            {String(errors.materias.message)}
+          </p>
         )}
-      >
-        {classOptions.map((c) => (
-          <option key={c.id} value={c.class_identifier}>
-            Turma {c.class_identifier}
-          </option>
-        ))}
-      </select>
+      </fieldset>
     </div>
   );
 }
