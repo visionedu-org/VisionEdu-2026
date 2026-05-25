@@ -96,8 +96,18 @@ const demoTeacher: User = {
     { school_id: CETI_SCHOOL_ID, name: cetiSchool.name },
   ],
   teacher_classes: [
-    { school_id: CETI_SCHOOL_ID, grade: "2", class_identifier: "A" },
-    { school_id: CETI_SCHOOL_ID, grade: "2", class_identifier: "B" },
+    {
+      school_id: CETI_SCHOOL_ID,
+      grade: "2",
+      class_identifier: "A",
+      materias: ["Matemática", "Português"],
+    },
+    {
+      school_id: CETI_SCHOOL_ID,
+      grade: "2",
+      class_identifier: "B",
+      materias: ["Matemática", "Português"],
+    },
   ],
 };
 

@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { studentService } from "@/services/student.service";
 import type { StudentProfile } from "@/types/domain";
+import { AppPage } from "@/components/layout/app-page";
 import { BadgeGrid } from "./badge-grid";
 import { XpProgressBar } from "./xp-progress-bar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function StudentProfileView() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
@@ -31,32 +33,39 @@ export function StudentProfileView() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-lg space-y-4 p-4 animate-pulse">
-        <div className="h-8 w-40 rounded bg-muted" />
-        <div className="h-24 rounded-xl bg-muted" />
-      </div>
+      <AppPage>
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-24 w-full max-w-xl" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-28" />
+          ))}
+        </div>
+      </AppPage>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="mx-auto w-full max-w-lg p-4">
+      <AppPage>
         <p role="alert" className="text-destructive">
           {error ?? "Perfil indisponível."}
         </p>
-      </div>
+      </AppPage>
     );
   }
 
   return (
-    <main className="mx-auto w-full max-w-lg space-y-8 p-4">
+    <AppPage>
       <h1 className="text-2xl font-bold">Meu perfil</h1>
-      <XpProgressBar
-        level={profile.level}
-        xp={profile.xp}
-        xpToNextLevel={profile.xpToNextLevel}
-      />
+      <div className="max-w-2xl">
+        <XpProgressBar
+          level={profile.level}
+          xp={profile.xp}
+          xpToNextLevel={profile.xpToNextLevel}
+        />
+      </div>
       <BadgeGrid badges={profile.badges} />
-    </main>
+    </AppPage>
   );
 }

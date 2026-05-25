@@ -18,7 +18,7 @@ export function BadgeGrid({ badges }: BadgeGridProps) {
       <h2 id="badges-heading" className="text-lg font-semibold">
         Conquistas
       </h2>
-      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {badges.map((badge) => {
           const def = BADGE_CATALOG[badge.id];
           const Icon = ICON_MAP[def.icon];

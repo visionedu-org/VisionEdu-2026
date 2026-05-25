@@ -75,6 +75,8 @@ export const demoStudentDashboard: StudentDashboardData = {
   averageScore: 7.4,
   activitiesCompleted: 3,
   activitiesTotal: 8,
+  materialsViewed: 5,
+  materialsTotal: 12,
   pendingActivities: [
     {
       id: DEMO_ACTIVITY_ID,

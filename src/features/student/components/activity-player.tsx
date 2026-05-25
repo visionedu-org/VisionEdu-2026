@@ -124,7 +124,7 @@ export function ActivityPlayer({ activityId }: ActivityPlayerProps) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-lg p-4 animate-pulse">
+      <div className="w-full animate-pulse">
         <div className="h-8 w-32 rounded bg-muted" />
         <div className="mt-6 h-40 rounded-xl bg-muted" />
       </div>
@@ -133,7 +133,7 @@ export function ActivityPlayer({ activityId }: ActivityPlayerProps) {
 
   if (error || !activity) {
     return (
-      <div className="mx-auto max-w-lg space-y-4 p-4">
+      <div className="w-full space-y-4">
         <p role="alert" className="text-destructive">
           {error ?? "Atividade não encontrada."}
         </p>
@@ -146,7 +146,7 @@ export function ActivityPlayer({ activityId }: ActivityPlayerProps) {
 
   if (submitted) {
     return (
-      <div className="mx-auto max-w-lg space-y-4 p-4">
+      <div className="mx-auto w-full max-w-3xl space-y-4">
         <AchievementToast message={achievementMessage} />
         <h1
           ref={submittedHeadingRef}
@@ -172,7 +172,7 @@ export function ActivityPlayer({ activityId }: ActivityPlayerProps) {
   const isLast = currentIndex === total - 1;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-lg flex-col p-4">
+    <div className="mx-auto flex min-h-[calc(100dvh-8rem)] w-full max-w-4xl flex-col">
       <Link
         href="/student/dashboard"
         className="mb-4 inline-flex min-h-11 min-w-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"

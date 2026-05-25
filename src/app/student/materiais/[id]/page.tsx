@@ -7,9 +7,5 @@ export default async function StudentMaterialDetailPage({
 }) {
   const { id } = await params;
 
-  return (
-    <div className="mx-auto w-full max-w-lg space-y-4 overflow-x-hidden p-4">
-      <MaterialDetail materialId={id} />
-    </div>
-  );
+  return <MaterialDetail materialId={id} />;
 }

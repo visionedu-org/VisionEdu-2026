@@ -259,12 +259,12 @@ export function StudentMaterialsList() {
   return (
     <div className="space-y-4">
       {filterControls}
-      <ul className="space-y-3">
+      <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} className="h-full">
             <Link
               href={`/student/materiais/${item.id}`}
-              className="flex min-h-11 flex-col gap-1 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex h-full min-h-11 flex-col gap-1 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <span className="flex items-center gap-2 font-semibold leading-snug">
               {item.title}

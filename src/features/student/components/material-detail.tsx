@@ -6,6 +6,7 @@ import { studentService } from "@/services/student.service";
 import { ApiError } from "@/lib/api-client";
 import { getVideoEmbedUrl } from "@/lib/materials-video";
 import type { MaterialContentType, StudentMaterialDetail } from "@/types/materials";
+import { AppPage } from "@/components/layout/app-page";
 import { Button } from "@/components/ui/button";
 import { AttachmentDownloadButton } from "@/components/materials/attachment-download-button";
 import { getStudentAttachmentDownloadPath } from "@/lib/materials-download";
@@ -93,18 +94,20 @@ export function MaterialDetail({ materialId }: MaterialDetailProps) {
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse" role="status" aria-live="polite">
-        <p className="sr-only">Carregando material…</p>
+      <AppPage className="animate-pulse">
+        <p className="sr-only" role="status">
+          Carregando material…
+        </p>
         <div className="h-8 w-3/4 rounded bg-muted" />
         <div className="h-4 w-1/2 rounded bg-muted" />
         <div className="h-32 rounded-xl bg-muted" />
-      </div>
+      </AppPage>
     );
   }
 
   if (notFound) {
     return (
-      <div className="space-y-4" role="status">
+      <AppPage>
         <p className="font-medium">Material não encontrado</p>
         <p className="text-sm text-muted-foreground">
           Este conteúdo não está disponível para você ou foi removido.
@@ -115,12 +118,13 @@ export function MaterialDetail({ materialId }: MaterialDetailProps) {
         >
           Voltar aos materiais
         </Link>
-      </div>
+      </AppPage>
     );
   }
 
   if (error) {
     return (
+      <AppPage>
       <div
         role="alert"
         className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
@@ -135,6 +139,7 @@ export function MaterialDetail({ materialId }: MaterialDetailProps) {
           Tentar novamente
         </Button>
       </div>
+      </AppPage>
     );
   }
 
@@ -146,6 +151,7 @@ export function MaterialDetail({ materialId }: MaterialDetailProps) {
       : null;
 
   return (
+    <AppPage>
     <article className="space-y-6">
       <header className="space-y-2">
         <p className="text-sm text-muted-foreground">
@@ -248,5 +254,6 @@ export function MaterialDetail({ materialId }: MaterialDetailProps) {
         ← Voltar aos materiais
       </Link>
     </article>
+    </AppPage>
   );
 }

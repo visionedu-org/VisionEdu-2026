@@ -3,6 +3,7 @@ import { StudentProfileNotFoundError } from "@/server/materials/list-student-mat
 
 export interface StudentContext {
   studentId: string;
+  classId: string;
   schoolName: string;
   grade: string;
   classIdentifier: string;
@@ -17,6 +18,7 @@ export async function getStudentContext(
     where: { userId: studentUserId },
     select: {
       id: true,
+      classId: true,
       xp: true,
       level: true,
       school: { select: { name: true } },
@@ -30,6 +32,7 @@ export async function getStudentContext(
 
   return {
     studentId: student.id,
+    classId: student.classId,
     schoolName: student.school.name,
     grade: student.class.grade,
     classIdentifier: student.class.classIdentifier,

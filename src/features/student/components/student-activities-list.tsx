@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { studentService } from "@/services/student.service";
 import type { StudentDashboardData } from "@/types/domain";
+import { AppPage } from "@/components/layout/app-page";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function StudentActivitiesList() {
   const [data, setData] = useState<StudentDashboardData | null>(null);
@@ -19,31 +21,35 @@ export function StudentActivitiesList() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-lg space-y-4 p-4 animate-pulse">
-        <div className="h-8 w-40 rounded bg-muted" />
-        <div className="h-20 rounded-xl bg-muted" />
-      </div>
+      <AppPage>
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
+        </div>
+      </AppPage>
     );
   }
 
   const pending = data?.pendingActivities ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-4 overflow-x-hidden p-4">
+    <AppPage>
       <h1 className="text-2xl font-bold">Suas atividades</h1>
 
       {pending.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhuma atividade pendente.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {pending.map((item) => (
             <li key={item.id}>
               <Link
                 href={`/student/atividade/${item.id}`}
-                className="flex min-h-11 flex-col justify-center rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30"
+                className="flex min-h-11 h-full flex-col justify-center rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30"
               >
                 <span className="font-semibold">{item.title}</span>
-                <span className="text-xs text-muted-foreground capitalize">
+                <span className="mt-1 text-xs text-muted-foreground capitalize">
                   {item.status === "in_progress" ? "Em progresso" : "Não iniciada"}
                 </span>
               </Link>
@@ -51,6 +57,6 @@ export function StudentActivitiesList() {
           ))}
         </ul>
       )}
-    </div>
+    </AppPage>
   );
 }

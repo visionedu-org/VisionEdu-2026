@@ -1,8 +1,9 @@
+import { AppPage } from "@/components/layout/app-page";
 import { StudentMaterialsList } from "@/features/student/components/student-materials-list";
 
 export default function StudentMateriaisPage() {
   return (
-    <div className="mx-auto w-full max-w-lg space-y-4 overflow-x-hidden p-4">
+    <AppPage>
       <header className="space-y-1">
         <h1 className="text-2xl font-bold">Materiais</h1>
         <p className="text-sm text-muted-foreground">
@@ -10,6 +11,6 @@ export default function StudentMateriaisPage() {
         </p>
       </header>
       <StudentMaterialsList />
-    </div>
+    </AppPage>
   );
 }
