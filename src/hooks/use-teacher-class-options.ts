@@ -1,9 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { ClassGroup } from "@/types/domain";
+import type { ClassGroup, School } from "@/types/domain";
+import { pilotSchools } from "@/mocks/data/ceti-seed";
 import { teacherService } from "@/services/teacher.service";
 import { ApiError } from "@/lib/api-client";
+
+function resolveAssignedSchools(classes: ClassGroup[]): School[] {
+  const schoolIds = [...new Set(classes.map((entry) => entry.school_id))];
+  return schoolIds.map((schoolId) => {
+    const known = pilotSchools.find((school) => school.id === schoolId);
+    return known ?? { id: schoolId, name: "Escola vinculada" };
+  });
+}
 
 export function useTeacherClassOptions() {
   const [assignedClasses, setAssignedClasses] = useState<ClassGroup[]>([]);
@@ -38,10 +47,15 @@ export function useTeacherClassOptions() {
     };
   }, []);
 
+  const schools = useMemo(
+    () => resolveAssignedSchools(assignedClasses),
+    [assignedClasses]
+  );
+
   const grades = useMemo(
     () => [...new Set(assignedClasses.map((c) => c.grade))].sort(),
     [assignedClasses]
   );
 
-  return { assignedClasses, grades, loading, error };
+  return { assignedClasses, schools, grades, loading, error };
 }

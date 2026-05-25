@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { useForm, useWatch, type FieldErrors } from "react-hook-form";
+import { useForm, useWatch, type FieldErrors, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2 } from "lucide-react";
 import {
@@ -23,7 +23,6 @@ import {
   MAX_MATERIAL_ATTACHMENTS,
   UPLOAD_MAX_BYTES_CLIENT,
 } from "@/lib/materials-upload";
-import { useCetiOptions } from "@/hooks/use-ceti-options";
 import { useTeacherClassOptions } from "@/hooks/use-teacher-class-options";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +40,8 @@ function buildDefaultFormValues(
   return {
     title: "",
     description: "",
-    subject: "Matemática",
+    subject: preferredClass?.materias?.[0] ?? "Matemática",
+    schoolId: preferredClass?.school_id ?? "",
     grade: (preferredClass?.grade ?? "2") as ContentFormValues["grade"],
     classId: preferredClass?.id ?? "",
     recipientMode: "class",
@@ -74,8 +74,7 @@ function formatFileSize(bytes: number): string {
 export function ContentForm({ initialClassId }: ContentFormProps) {
   const fileInputId = useId();
   const successBannerRef = useRef<HTMLDivElement>(null);
-  const { schools, defaultSchoolId } = useCetiOptions();
-  const { assignedClasses, grades: teacherGrades, loading: classesLoading, error: classesError } =
+  const { assignedClasses, schools, loading: classesLoading, error: classesError } =
     useTeacherClassOptions();
   const defaultFormValues = useMemo(
     () => buildDefaultFormValues(assignedClasses, initialClassId),
@@ -91,22 +90,46 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
   const [studentsError, setStudentsError] = useState<string | null>(null);
 
   const form = useForm<ContentFormValues>({
-    resolver: zodResolver(contentFormSchema),
+    resolver: zodResolver(contentFormSchema) as Resolver<ContentFormValues>,
     defaultValues: defaultFormValues,
   });
 
-  const schoolId = defaultSchoolId;
-  const [grade, contentType, classId, recipientMode] = useWatch({
+  const [schoolId, grade, contentType, classId, recipientMode] = useWatch({
     control: form.control,
-    name: ["grade", "contentType", "classId", "recipientMode"],
+    name: ["schoolId", "grade", "contentType", "classId", "recipientMode"],
   });
+  const resolvedSchoolId = schoolId ?? defaultFormValues.schoolId;
   const resolvedGrade = grade ?? defaultFormValues.grade;
   const resolvedContentType = contentType ?? "text";
   const resolvedClassId = classId ?? defaultFormValues.classId;
   const resolvedRecipientMode = recipientMode ?? "class";
+
+  const classesForSchool = useMemo(
+    () => assignedClasses.filter((c) => c.school_id === resolvedSchoolId),
+    [assignedClasses, resolvedSchoolId]
+  );
+
+  const teacherGrades = useMemo(
+    () => [...new Set(classesForSchool.map((c) => c.grade))].sort(),
+    [classesForSchool]
+  );
+
   const classes = useMemo(
-    () => assignedClasses.filter((c) => c.grade === resolvedGrade),
-    [assignedClasses, resolvedGrade]
+    () => classesForSchool.filter((c) => c.grade === resolvedGrade),
+    [classesForSchool, resolvedGrade]
+  );
+
+  const selectedClass = useMemo(
+    () => assignedClasses.find((c) => c.id === resolvedClassId),
+    [assignedClasses, resolvedClassId]
+  );
+
+  const availableSubjects = useMemo(
+    () =>
+      selectedClass?.materias && selectedClass.materias.length > 0
+        ? selectedClass.materias
+        : TEACHER_DISCIPLINES,
+    [selectedClass]
   );
 
   const isBusy = form.formState.isSubmitting || isUploading;
@@ -120,12 +143,32 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
 
   useEffect(() => {
     if (classesLoading || assignedClasses.length === 0) return;
+
+    const currentSchoolId = form.getValues("schoolId");
+    if (!schools.some((school) => school.id === currentSchoolId) && schools[0]) {
+      form.setValue("schoolId", schools[0].id, { shouldValidate: true });
+    }
+  }, [classesLoading, assignedClasses, schools, form]);
+
+  useEffect(() => {
+    if (classesLoading || classesForSchool.length === 0) return;
+
+    const currentGrade = form.getValues("grade");
+    if (!teacherGrades.includes(currentGrade) && teacherGrades[0]) {
+      form.setValue("grade", teacherGrades[0] as ContentFormValues["grade"], {
+        shouldValidate: true,
+      });
+    }
+  }, [classesLoading, classesForSchool, teacherGrades, form]);
+
+  useEffect(() => {
+    if (classesLoading || classesForSchool.length === 0) return;
     const currentClassId = form.getValues("classId");
-    const gradeClasses = assignedClasses.filter((c) => c.grade === resolvedGrade);
+    const gradeClasses = classesForSchool.filter((c) => c.grade === resolvedGrade);
     if (!gradeClasses.some((c) => c.id === currentClassId) && gradeClasses[0]) {
       form.setValue("classId", gradeClasses[0].id, { shouldValidate: true });
     }
-  }, [resolvedGrade, assignedClasses, classesLoading, form]);
+  }, [resolvedSchoolId, resolvedGrade, classesForSchool, classesLoading, form]);
 
   useEffect(() => {
     if (classesLoading || assignedClasses.length === 0) return;
@@ -134,15 +177,28 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
     const next = buildDefaultFormValues(assignedClasses, initialClassId);
     form.reset({
       ...form.getValues(),
+      schoolId: next.schoolId,
       grade: next.grade,
       classId: next.classId,
     });
   }, [classesLoading, assignedClasses, initialClassId, form]);
 
   useEffect(() => {
+    if (classesLoading || !resolvedClassId) return;
+    const currentSubject = form.getValues("subject");
+    if (
+      availableSubjects.length > 0 &&
+      !availableSubjects.includes(currentSubject)
+    ) {
+      form.setValue("subject", availableSubjects[0]!, { shouldValidate: true });
+    }
+  }, [classesLoading, resolvedClassId, availableSubjects, form]);
+
+  useEffect(() => {
     if (!initialClassId || assignedClasses.length === 0) return;
     const match = assignedClasses.find((c) => c.id === initialClassId);
     if (match) {
+      form.setValue("schoolId", match.school_id, { shouldValidate: true });
       form.setValue("grade", match.grade as ContentFormValues["grade"], {
         shouldValidate: true,
       });
@@ -330,8 +386,22 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
     setLastContentId(null);
     setSubmitSuccess(false);
 
-    if (!assignedClasses.some((c) => c.id === values.classId)) {
+    const selectedClass = assignedClasses.find((c) => c.id === values.classId);
+    if (
+      !selectedClass ||
+      selectedClass.school_id !== values.schoolId ||
+      selectedClass.grade !== values.grade
+    ) {
       setRootError("Selecione uma turma vinculada ao seu perfil.");
+      return;
+    }
+
+    if (
+      selectedClass.materias &&
+      selectedClass.materias.length > 0 &&
+      !selectedClass.materias.includes(values.subject)
+    ) {
+      setRootError("Selecione uma matéria vinculada ao seu perfil nesta turma.");
       return;
     }
 
@@ -470,7 +540,7 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
           className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"
           {...form.register("subject")}
         >
-          {TEACHER_DISCIPLINES.map((d) => (
+          {availableSubjects.map((d) => (
             <option key={d} value={d}>
               {d}
             </option>
@@ -488,8 +558,8 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
         <select
           id="content-school"
           className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"
-          disabled
-          value={schoolId}
+          disabled={schools.length <= 1}
+          {...form.register("schoolId")}
         >
           {schools.map((s) => (
             <option key={s.id} value={s.id}>
@@ -497,6 +567,11 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
             </option>
           ))}
         </select>
+        {form.formState.errors.schoolId && (
+          <p className="text-sm text-destructive">
+            {form.formState.errors.schoolId.message}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">

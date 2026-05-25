@@ -3,22 +3,38 @@ import type {
   CreateMaterialInput,
   LegacyCreateContentInput,
 } from "@/lib/validations/materials";
-import { MaterialClassesInvalidError } from "@/server/materials/create-material";
+import {
+  MaterialClassesInvalidError,
+  TeacherProfileNotFoundError,
+} from "@/server/materials/create-material";
 
 export async function mapLegacyContentToCreateMaterial(
+  teacherUserId: string,
   payload: LegacyCreateContentInput
 ): Promise<CreateMaterialInput> {
+  const teacher = await prisma.teacherProfile.findUnique({
+    where: { userId: teacherUserId },
+    select: { id: true },
+  });
+
+  if (!teacher) {
+    throw new TeacherProfileNotFoundError();
+  }
+
   const classGroup = await prisma.classGroup.findFirst({
     where: {
       grade: payload.grade,
       classIdentifier: payload.class_identifier,
+      teacherAssignments: {
+        some: { teacherId: teacher.id },
+      },
     },
     select: { id: true },
   });
 
   if (!classGroup) {
     throw new MaterialClassesInvalidError(
-      "Turma não encontrada para o envio do material."
+      "Turma não encontrada ou não vinculada ao seu perfil."
     );
   }
 

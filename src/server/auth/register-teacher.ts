@@ -6,7 +6,10 @@ import { hashPassword } from "./password";
 import { signAccessToken } from "./jwt";
 import { mapUserToDomain, userInclude } from "./user-mapper";
 import { AuthRegisterError } from "./register-student";
-import { findOrCreateClassGroup } from "./class-group";
+import {
+  createTeacherAssignmentsFromRegistration,
+  TeacherAssignmentsInvalidError,
+} from "@/server/teacher/sync-assignments";
 
 export async function registerTeacher(
   values: RegisterTeacherApiPayload
@@ -20,30 +23,23 @@ export async function registerTeacher(
     });
   }
 
-  const schoolIds: string[] = [];
-  const classIds: string[] = [];
-
-  for (const schoolBlock of values.schools) {
-    if (!schoolIds.includes(schoolBlock.school_id)) {
-      schoolIds.push(schoolBlock.school_id);
+  let assignmentData;
+  try {
+    assignmentData = await createTeacherAssignmentsFromRegistration(
+      values.schools
+    );
+  } catch (err) {
+    if (err instanceof TeacherAssignmentsInvalidError) {
+      throw new AuthRegisterError(err.message, 422, err.fieldErrors);
     }
-
-    for (const classEntry of schoolBlock.classes) {
-      const classGroup = await findOrCreateClassGroup({
-        schoolId: schoolBlock.school_id,
-        grade: classEntry.grade,
-        classIdentifier: classEntry.class_identifier,
-      });
-
-      if (!classIds.includes(classGroup.id)) {
-        classIds.push(classGroup.id);
-      }
-    }
+    throw err;
   }
 
-  if (schoolIds.length === 0 || classIds.length === 0) {
+  const { schoolIds, classIds, materiaRows } = assignmentData;
+
+  if (schoolIds.length === 0 || classIds.length === 0 || materiaRows.length === 0) {
     throw new AuthRegisterError("Dados incompletos", 422, {
-      schools: "Informe escolas e turmas",
+      schools: "Informe escolas, turmas e matérias",
     });
   }
 
@@ -63,6 +59,13 @@ export async function registerTeacher(
           },
           assignments: {
             create: classIds.map((classId) => ({ classId })),
+          },
+          classMaterias: {
+            create: materiaRows.map((row) => ({
+              classId: row.classId,
+              schoolId: row.schoolId,
+              materia: row.materia,
+            })),
           },
         },
       },

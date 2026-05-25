@@ -22,3 +22,42 @@ export async function assertTeacherOwnsClass(
     throw new TeacherClassForbiddenError();
   }
 }
+
+export async function assertTeacherOwnsSchool(
+  teacherId: string,
+  schoolId: string
+): Promise<void> {
+  const assignment = await prisma.teacherSchoolAssignment.findUnique({
+    where: {
+      teacherId_schoolId: { teacherId, schoolId },
+    },
+    select: { schoolId: true },
+  });
+
+  if (!assignment) {
+    throw new TeacherClassForbiddenError("Escola não vinculada ao professor");
+  }
+}
+
+export async function assertTeacherOwnsDiscipline(
+  teacherId: string,
+  classId: string,
+  discipline: string
+): Promise<void> {
+  const assignment = await prisma.teacherClassMateria.findUnique({
+    where: {
+      teacherId_classId_materia: {
+        teacherId,
+        classId,
+        materia: discipline,
+      },
+    },
+    select: { materia: true },
+  });
+
+  if (!assignment) {
+    throw new TeacherClassForbiddenError(
+      "Matéria não vinculada ao professor nesta turma"
+    );
+  }
+}

@@ -8,18 +8,24 @@ export const TEACHER_DISCIPLINES = [
   "Geografia",
 ] as const;
 
+export type TeacherDiscipline = (typeof TEACHER_DISCIPLINES)[number];
+
 const teacherContentTypeSchema = z.enum(["text", "video_link", "file"]);
 
-const optionalStudentIdSchema = z.preprocess(
-  (value) => (value === "" || value === null ? undefined : value),
-  z.string().uuid("Selecione um aluno válido").optional()
-);
+const optionalStudentIdSchema = z
+  .union([
+    z.string().uuid("Selecione um aluno válido"),
+    z.literal(""),
+  ])
+  .optional()
+  .transform((value) => (value === "" || value === undefined ? undefined : value));
 
 export const contentFormSchema = z
   .object({
     title: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
     description: z.string().min(1, "Descrição é obrigatória"),
     subject: z.enum(TEACHER_DISCIPLINES),
+    schoolId: z.string().uuid("Selecione uma escola vinculada"),
     grade: z.enum(["1", "2", "3"]),
     classId: z.string().uuid("Selecione uma turma válida"),
     recipientMode: z.enum(["class", "student"]),

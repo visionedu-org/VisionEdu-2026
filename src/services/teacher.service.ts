@@ -16,7 +16,8 @@ import type {
   MaterialListResponse,
 } from "@/types/materials";
 import type { ClassGroup } from "@/types/domain";
-import { pilotClasses } from "@/mocks/data/ceti-seed";
+import type { TeacherSchoolsPayload } from "@/lib/validations/teacher-assignments";
+import type { User } from "@/types/domain";
 
 export const teacherService = {
   getClassDashboard(classId: string): Promise<ClassDashboardData> {
@@ -57,13 +58,16 @@ export const teacherService = {
   async createContent(
     payload: Omit<TeacherContent, "id" | "createdAt">
   ): Promise<{ id: string }> {
-    const classGroup = pilotClasses.find(
-      (c) =>
-        c.grade === payload.grade &&
-        c.class_identifier === payload.class_identifier
+    const { classes } = await this.listMyClasses();
+    const classGroup = classes.find(
+      (entry) =>
+        entry.grade === payload.grade &&
+        entry.class_identifier === payload.class_identifier
     );
     if (!classGroup) {
-      throw new Error("Turma não encontrada para o envio do material.");
+      throw new Error(
+        "Turma não encontrada ou não vinculada ao seu perfil."
+      );
     }
 
     const contentType =
@@ -114,6 +118,21 @@ export const teacherService = {
   listMyClasses(): Promise<{ classes: ClassGroup[] }> {
     return apiClient.get<{ classes: ClassGroup[] }>(
       "/api/v1/teachers/me/classes"
+    );
+  },
+
+  getMyAssignments(): Promise<{ schools: TeacherSchoolsPayload }> {
+    return apiClient.get<{ schools: TeacherSchoolsPayload }>(
+      "/api/v1/teachers/me/assignments"
+    );
+  },
+
+  updateMyAssignments(
+    schools: TeacherSchoolsPayload
+  ): Promise<{ schools: TeacherSchoolsPayload; user: User }> {
+    return apiClient.patch<{ schools: TeacherSchoolsPayload; user: User }>(
+      "/api/v1/teachers/me/assignments",
+      { schools }
     );
   },
 

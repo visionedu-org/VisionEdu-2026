@@ -1,7 +1,7 @@
 import type { MaterialContentType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { CreateMaterialInput } from "@/lib/validations/materials";
-import { assertTeacherOwnsClass } from "@/server/materials/assert-teacher-class";
+import { assertTeacherOwnsClass, assertTeacherOwnsDiscipline, assertTeacherOwnsSchool } from "@/server/materials/assert-teacher-class";
 import { assertStudentInTeacherClass } from "@/server/materials/assert-student-in-class";
 
 export class TeacherProfileNotFoundError extends Error {
@@ -55,6 +55,11 @@ export async function createMaterial(
 
   for (const classId of classIds) {
     await assertTeacherOwnsClass(teacher.id, classId);
+    await assertTeacherOwnsDiscipline(
+      teacher.id,
+      classId,
+      payload.discipline
+    );
   }
 
   for (const recipient of payload.recipients) {
@@ -84,6 +89,8 @@ export async function createMaterial(
   }
 
   const schoolId = classes[0]!.schoolId;
+  await assertTeacherOwnsSchool(teacher.id, schoolId);
+
   const sentAt = new Date();
   const bodyText =
     payload.contentType === "text" ? (payload.bodyText?.trim() ?? null) : null;

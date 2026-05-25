@@ -1,3 +1,5 @@
+import type { TeacherDiscipline } from "@/lib/validations/teacher";
+
 export type UserRole = "student" | "teacher" | "admin";
 
 export interface User {
@@ -23,6 +25,7 @@ export interface TeacherClassAssignment {
   grade: string;
   class_identifier: string;
   class_id?: string;
+  materias?: TeacherDiscipline[];
 }
 
 export interface School {
@@ -38,6 +41,7 @@ export interface ClassGroup {
   grade: string;
   class_identifier: string;
   label: string;
+  materias?: TeacherDiscipline[];
 }
 
 export interface AuthResponse {
@@ -72,6 +76,8 @@ export interface StudentDashboardData {
   averageScore: number;
   activitiesCompleted: number;
   activitiesTotal: number;
+  materialsViewed: number;
+  materialsTotal: number;
   pendingActivities: PendingActivitySummary[];
 }
 

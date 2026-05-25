@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const createInput = await mapLegacyContentToCreateMaterial(parsed.data);
+    const createInput = await mapLegacyContentToCreateMaterial(userId, parsed.data);
     const result = await createMaterial(userId, createInput);
 
     return Response.json(
