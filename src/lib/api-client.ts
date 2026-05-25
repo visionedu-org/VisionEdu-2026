@@ -174,7 +174,11 @@ export const apiClient = {
     return parseResponse<T>(response);
   },
 
-  async patch<T>(url: string, options?: RequestInit): Promise<T> {
+  async patch<T>(
+    url: string,
+    body?: unknown,
+    options?: RequestInit
+  ): Promise<T> {
     const { headers: optionHeaders, ...rest } = options ?? {};
     const response = await fetch(`${API_BASE}${url}`, {
       ...rest,
@@ -185,6 +189,7 @@ export const apiClient = {
         ...getAuthHeaders(),
         ...optionHeaders,
       },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
     return parseResponse<T>(response);
   },
