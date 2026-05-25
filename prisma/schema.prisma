@@ -52,10 +52,11 @@ model School {
   gre  String?
   city String?
 
-  classes              ClassGroup[]
-  studentProfiles      StudentProfile[]
-  teacherAssignments   TeacherSchoolAssignment[]
-  educationalMaterials EducationalMaterial[]
+  classes                   ClassGroup[]
+  studentProfiles           StudentProfile[]
+  teacherAssignments        TeacherSchoolAssignment[]
+  teacherClassMaterias      TeacherClassMateria[]
+  educationalMaterials      EducationalMaterial[]
 
   @@map("schools")
 }
@@ -70,6 +71,7 @@ model ClassGroup {
   school              School @relation(fields: [schoolId], references: [id])
   studentProfiles     StudentProfile[]
   teacherAssignments  TeacherClassAssignment[]
+  teacherClassMaterias TeacherClassMateria[]
   materialRecipients  MaterialRecipient[]
 
   @@unique([schoolId, grade, classIdentifier])
@@ -97,11 +99,12 @@ model TeacherProfile {
   id     String @id @default(uuid()) @db.Uuid
   userId String @unique @map("user_id") @db.Uuid
 
-  user        User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignments TeacherClassAssignment[]
-  schools     TeacherSchoolAssignment[]
-  materials   EducationalMaterial[]
-  attachments MaterialAttachment[]
+  user              User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignments       TeacherClassAssignment[]
+  schools           TeacherSchoolAssignment[]
+  classMaterias     TeacherClassMateria[]
+  materials         EducationalMaterial[]
+  attachments       MaterialAttachment[]
 
   @@map("teachers")
 }
@@ -126,6 +129,21 @@ model TeacherClassAssignment {
 
   @@id([teacherId, classId])
   @@map("teacher_classes")
+}
+
+model TeacherClassMateria {
+  teacherId String @map("teacher_id") @db.Uuid
+  classId   String @map("class_id") @db.Uuid
+  schoolId  String @map("school_id") @db.Uuid
+  materia   String
+
+  teacher TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   ClassGroup     @relation(fields: [classId], references: [id])
+  school  School         @relation(fields: [schoolId], references: [id])
+
+  @@id([teacherId, classId, materia])
+  @@index([teacherId, schoolId])
+  @@map("teacher_class_materias")
 }
 
 model EducationalMaterial {

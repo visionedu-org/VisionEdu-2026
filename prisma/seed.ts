@@ -134,10 +134,74 @@ async function main() {
               { classId: CLASS_IDS["2-B"] },
             ],
           },
+          classMaterias: {
+            create: [
+              {
+                classId: CLASS_IDS["2-A"],
+                schoolId: CETI_SCHOOL_ID,
+                materia: "Matemática",
+              },
+              {
+                classId: CLASS_IDS["2-A"],
+                schoolId: CETI_SCHOOL_ID,
+                materia: "Português",
+              },
+              {
+                classId: CLASS_IDS["2-B"],
+                schoolId: CETI_SCHOOL_ID,
+                materia: "Matemática",
+              },
+              {
+                classId: CLASS_IDS["2-B"],
+                schoolId: CETI_SCHOOL_ID,
+                materia: "Português",
+              },
+            ],
+          },
         },
       },
     },
   });
+
+  const demoTeacher = await prisma.teacherProfile.findFirst({
+    where: { user: { email: "regina.demo@escola.pi.gov.br" } },
+    select: { id: true },
+  });
+
+  if (demoTeacher) {
+    await prisma.teacherClassMateria.deleteMany({
+      where: { teacherId: demoTeacher.id },
+    });
+    await prisma.teacherClassMateria.createMany({
+      data: [
+        {
+          teacherId: demoTeacher.id,
+          classId: CLASS_IDS["2-A"],
+          schoolId: CETI_SCHOOL_ID,
+          materia: "Matemática",
+        },
+        {
+          teacherId: demoTeacher.id,
+          classId: CLASS_IDS["2-A"],
+          schoolId: CETI_SCHOOL_ID,
+          materia: "Português",
+        },
+        {
+          teacherId: demoTeacher.id,
+          classId: CLASS_IDS["2-B"],
+          schoolId: CETI_SCHOOL_ID,
+          materia: "Matemática",
+        },
+        {
+          teacherId: demoTeacher.id,
+          classId: CLASS_IDS["2-B"],
+          schoolId: CETI_SCHOOL_ID,
+          materia: "Português",
+        },
+      ],
+      skipDuplicates: true,
+    });
+  }
 }
 
 main()
