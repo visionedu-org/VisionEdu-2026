@@ -17,17 +17,20 @@ import { shuffleArray } from "@/lib/enem/shuffle-array";
 import {
   clampQuestionsPageSize,
   DEFAULT_QUESTIONS_PAGE_SIZE,
+  ENEM_AUTO_LOAD_DELAY_MS,
+  ENEM_MAX_AUTO_PAGES,
+  ENEM_MIN_FILTERED_RESULTS,
 } from "@/lib/enem/constants";
-import { ApiError } from "@/lib/api-client";
-import { enemQuestionsService } from "@/services/enem-questions.service";
+import {
+  fetchEnemQuestionsList,
+  isEnemRateLimitError,
+  resolveEnemFetchErrorMessage,
+} from "@/lib/enem/enem-question-api";
 import type {
   EnemQuestion,
   EnemQuestionFilters,
   EnemQuestionsMetadata,
 } from "@/types/enem";
-
-const MIN_FILTERED_RESULTS = 8;
-const MAX_AUTO_PAGES = 12;
 
 interface UseEnemQuestionsOptions {
   pageSize?: number;
@@ -40,6 +43,8 @@ export function useEnemQuestions({
 }: UseEnemQuestionsOptions = {}) {
   const pageSize = clampQuestionsPageSize(rawPageSize);
   const fetchPageSizeRef = useRef(pageSize);
+  const fetchInFlightRef = useRef(false);
+  const autoLoadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetchPageSizeRef.current = pageSize;
@@ -52,6 +57,7 @@ export function useEnemQuestions({
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rateLimited, setRateLimited] = useState(false);
   const [progressTick, setProgressTick] = useState(0);
   const [autoPagesLoaded, setAutoPagesLoaded] = useState(0);
   const [shuffleSeed, setShuffleSeed] = useState(0);
@@ -67,7 +73,6 @@ export function useEnemQuestions({
             difficulty: appliedFilters.difficulty,
             answered: appliedFilters.answered,
             favorites: appliedFilters.favorites,
-            shuffle: appliedFilters.shuffle,
             pageSize,
           })
         : null,
@@ -76,10 +81,32 @@ export function useEnemQuestions({
 
   useEffect(() => subscribeEnemProgressLocal(() => setProgressTick((t) => t + 1)), []);
 
+  useEffect(() => {
+    return () => {
+      if (autoLoadTimerRef.current) {
+        clearTimeout(autoLoadTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleFetchError = useCallback((err: unknown, append: boolean) => {
+    if (isEnemRateLimitError(err)) {
+      setRateLimited(true);
+    }
+    setError(resolveEnemFetchErrorMessage(err));
+    if (!append) {
+      setRawQuestions([]);
+      setMetadata(null);
+    }
+  }, []);
+
   const fetchFavorites = useCallback(
     async (filters: EnemQuestionFilters) => {
+      if (fetchInFlightRef.current) return;
+      fetchInFlightRef.current = true;
       setLoading(true);
       setError(null);
+      setRateLimited(false);
       try {
         const keys = getEnemProgress().favorites;
         const loaded = await loadFavoriteQuestions(keys, {
@@ -97,18 +124,13 @@ export function useEnemQuestions({
         });
         offsetRef.current = loaded.length;
       } catch (err) {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Não foi possível carregar questões favoritas."
-        );
-        setRawQuestions([]);
-        setMetadata(null);
+        handleFetchError(err, false);
       } finally {
         setLoading(false);
+        fetchInFlightRef.current = false;
       }
     },
-    []
+    [handleFetchError]
   );
 
   const fetchAllYearsPage = useCallback(
@@ -122,10 +144,13 @@ export function useEnemQuestions({
         setMetadata(null);
         return;
       }
+      if (fetchInFlightRef.current) return;
 
+      fetchInFlightRef.current = true;
       if (append) setLoadingMore(true);
       else setLoading(true);
       setError(null);
+      if (!append) setRateLimited(false);
 
       try {
         const { questions: batch, hasMore } = await collectQuestionsBatch(
@@ -153,21 +178,14 @@ export function useEnemQuestions({
           setAutoPagesLoaded((n) => n + 1);
         }
       } catch (err) {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Não foi possível carregar as questões."
-        );
-        if (!append) {
-          setRawQuestions([]);
-          setMetadata(null);
-        }
+        handleFetchError(err, append);
       } finally {
         setLoading(false);
         setLoadingMore(false);
+        fetchInFlightRef.current = false;
       }
     },
-    []
+    [handleFetchError]
   );
 
   const fetchPage = useCallback(
@@ -177,13 +195,16 @@ export function useEnemQuestions({
       queryFilters: EnemQuestionFilters
     ) => {
       if (typeof queryFilters.year !== "number") return;
+      if (fetchInFlightRef.current) return;
 
+      fetchInFlightRef.current = true;
       if (append) setLoadingMore(true);
       else setLoading(true);
       setError(null);
+      if (!append) setRateLimited(false);
 
       try {
-        const response = await enemQuestionsService.listQuestions({
+        const response = await fetchEnemQuestionsList({
           year: queryFilters.year,
           limit: fetchPageSizeRef.current,
           offset,
@@ -200,22 +221,29 @@ export function useEnemQuestions({
           setAutoPagesLoaded((n) => n + 1);
         }
       } catch (err) {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Não foi possível carregar as questões."
-        );
-        if (!append) {
-          setRawQuestions([]);
-          setMetadata(null);
-        }
+        handleFetchError(err, append);
       } finally {
         setLoading(false);
         setLoadingMore(false);
+        fetchInFlightRef.current = false;
       }
     },
-    []
+    [handleFetchError]
   );
+
+  function filtersEqualExceptShuffle(
+    a: EnemQuestionFilters,
+    b: EnemQuestionFilters
+  ): boolean {
+    return (
+      a.year === b.year &&
+      a.discipline === b.discipline &&
+      a.difficulty === b.difficulty &&
+      a.answered === b.answered &&
+      a.favorites === b.favorites &&
+      a.language === b.language
+    );
+  }
 
   const apply = useCallback(
     async (
@@ -225,12 +253,28 @@ export function useEnemQuestions({
       if (options?.pageSize !== undefined) {
         fetchPageSizeRef.current = clampQuestionsPageSize(options.pageSize);
       }
+      if (autoLoadTimerRef.current) {
+        clearTimeout(autoLoadTimerRef.current);
+        autoLoadTimerRef.current = null;
+      }
+
+      if (
+        appliedFilters &&
+        filtersEqualExceptShuffle(appliedFilters, filters) &&
+        rawQuestions.length > 0
+      ) {
+        setAppliedFilters(filters);
+        setShuffleSeed(Date.now());
+        return;
+      }
+
       setAppliedFilters(filters);
       offsetRef.current = 0;
       allYearsBatchRef.current = createCollectQuestionsBatchState(examYears);
       setAutoPagesLoaded(0);
       setRawQuestions([]);
       setMetadata(null);
+      setRateLimited(false);
       setShuffleSeed(Date.now());
 
       if (isFavoritesOnlyMode(filters)) {
@@ -245,7 +289,14 @@ export function useEnemQuestions({
 
       await fetchPage(0, false, filters);
     },
-    [examYears, fetchAllYearsPage, fetchFavorites, fetchPage]
+    [
+      appliedFilters,
+      examYears,
+      fetchAllYearsPage,
+      fetchFavorites,
+      fetchPage,
+      rawQuestions.length,
+    ]
   );
 
   useEffect(() => {
@@ -277,21 +328,32 @@ export function useEnemQuestions({
     hasApplied &&
     appliedFilters &&
     !favoritesMode &&
+    !rateLimited &&
     hasActiveClientFilters(appliedFilters) &&
-    filteredQuestions.length < MIN_FILTERED_RESULTS &&
+    filteredQuestions.length < ENEM_MIN_FILTERED_RESULTS &&
     hasMoreFromApi &&
-    autoPagesLoaded < MAX_AUTO_PAGES &&
+    autoPagesLoaded < ENEM_MAX_AUTO_PAGES &&
     !loading &&
     !loadingMore;
 
   useEffect(() => {
     if (!shouldAutoLoadMore || !appliedFilters) return;
-    if (allYearsMode) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- paginação automática
-      void fetchAllYearsPage(examYears, true, appliedFilters);
-      return;
-    }
-    void fetchPage(offsetRef.current, true, appliedFilters);
+
+    autoLoadTimerRef.current = globalThis.setTimeout(() => {
+      if (fetchInFlightRef.current) return;
+      if (allYearsMode) {
+        void fetchAllYearsPage(examYears, true, appliedFilters);
+        return;
+      }
+      void fetchPage(offsetRef.current, true, appliedFilters);
+    }, ENEM_AUTO_LOAD_DELAY_MS);
+
+    return () => {
+      if (autoLoadTimerRef.current) {
+        clearTimeout(autoLoadTimerRef.current);
+        autoLoadTimerRef.current = null;
+      }
+    };
   }, [
     allYearsMode,
     appliedFilters,
@@ -307,8 +369,10 @@ export function useEnemQuestions({
       !appliedFilters ||
       loadingMore ||
       loading ||
+      fetchInFlightRef.current ||
       !hasMoreFromApi ||
-      favoritesMode
+      favoritesMode ||
+      rateLimited
     ) {
       return;
     }
@@ -327,10 +391,12 @@ export function useEnemQuestions({
     hasMoreFromApi,
     loading,
     loadingMore,
+    rateLimited,
   ]);
 
   const retry = useCallback(() => {
     if (!appliedFilters) return;
+    setRateLimited(false);
     offsetRef.current = 0;
     allYearsBatchRef.current = createCollectQuestionsBatchState(examYears);
     setAutoPagesLoaded(0);
@@ -346,15 +412,21 @@ export function useEnemQuestions({
     void fetchPage(0, false, appliedFilters);
   }, [appliedFilters, examYears, fetchAllYearsPage, fetchFavorites, fetchPage]);
 
+  const reshuffle = useCallback(() => {
+    setShuffleSeed(Date.now());
+  }, []);
+
   return {
     questions,
     loading,
     loadingMore: loadingMore || shouldAutoLoadMore,
     error,
+    rateLimited,
     hasApplied,
     hasMoreFromApi: favoritesMode ? false : hasMoreFromApi,
     apply,
     loadMore,
     retry,
+    reshuffle,
   };
 }

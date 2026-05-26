@@ -5,7 +5,7 @@ import { loadFavoriteQuestions } from "@/lib/enem/load-favorite-questions";
 import { questionKeyFromQuestion } from "@/lib/enem/question-key";
 import { shuffleArray } from "@/lib/enem/shuffle-array";
 import { getEnemProgress, subscribeEnemProgressLocal } from "@/lib/enem/storage";
-import { ApiError } from "@/lib/api-client";
+import { resolveEnemFetchErrorMessage } from "@/lib/enem/enem-question-api";
 import type { EnemQuestion, EnemQuestionFilters } from "@/types/enem";
 
 interface UseEnemFavoritesOptions {
@@ -63,11 +63,7 @@ export function useEnemFavorites({ shuffle = false }: UseEnemFavoritesOptions = 
         setQuestions(loaded);
         setHasLoaded(true);
       } catch (err) {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Não foi possível carregar seus favoritos."
-        );
+        setError(resolveEnemFetchErrorMessage(err));
         setQuestions([]);
         setHasLoaded(true);
       } finally {
