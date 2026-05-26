@@ -34,7 +34,7 @@ export function ClassStudentsList({ classId }: ClassStudentsListProps) {
       setError(null);
       try {
         const { students: list } = await teacherService.listClassStudents(
-          resolvedClassId
+          resolvedClassId!
         );
         if (!cancelled) setStudents(list);
       } catch {
