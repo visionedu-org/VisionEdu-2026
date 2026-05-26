@@ -12,6 +12,9 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   n8n_not_configured:
     "Resolução com IA indisponível no momento. O serviço ainda não foi configurado.",
   n8n_error: "Não foi possível gerar a resolução com IA. Tente novamente.",
+  rate_limit:
+    "Muitas requisições em pouco tempo. Aguarde alguns segundos e tente novamente.",
+  enem_api_error: "Não foi possível carregar dados do ENEM. Tente novamente.",
 };
 
 const STATUS_FALLBACK_MESSAGES: Record<number, string> = {
@@ -21,6 +24,7 @@ const STATUS_FALLBACK_MESSAGES: Record<number, string> = {
   404: "Não encontrado.",
   413: "Arquivo muito grande.",
   415: "Tipo de arquivo não permitido.",
+  429: "Muitas requisições. Aguarde um momento e tente novamente.",
   500: "Erro no servidor. Tente novamente.",
 };
 
