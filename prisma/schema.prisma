@@ -78,6 +78,12 @@ model ClassGroup {
   @@map("classes")
 }
 
+enum LearningPathStepStatus {
+  locked
+  in_progress
+  completed
+}
+
 model StudentProfile {
   id     String @id @default(uuid()) @db.Uuid
   userId String @unique @map("user_id") @db.Uuid
@@ -91,8 +97,68 @@ model StudentProfile {
   class  ClassGroup @relation(fields: [classId], references: [id])
   materialRecipients MaterialRecipient[]
   materialReads      MaterialRead[]
+  enemAttempts       EnemQuestionAttempt[]
+  learningPaths      StudentLearningPath[]
 
   @@map("students")
+}
+
+model EnemQuestionAttempt {
+  id             String   @id @default(uuid()) @db.Uuid
+  studentId      String   @map("student_id") @db.Uuid
+  questionKey    String   @map("question_key")
+  year           Int
+  index          Int
+  language       String?  @map("language")
+  discipline     String?  @map("discipline")
+  primarySkill   String?  @map("primary_skill")
+  selectedLetter String   @map("selected_letter")
+  correctLetter  String   @map("correct_letter")
+  isCorrect      Boolean  @map("is_correct")
+  answeredAt     DateTime @default(now()) @map("answered_at")
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionKey])
+  @@index([studentId, answeredAt])
+  @@map("enem_question_attempts")
+}
+
+model StudentLearningPath {
+  id          String   @id @default(uuid()) @db.Uuid
+  studentId   String   @map("student_id") @db.Uuid
+  title       String
+  summary     String?
+  isActive    Boolean  @default(true) @map("is_active")
+  generatedAt DateTime @default(now()) @map("generated_at")
+
+  student StudentProfile    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  steps   LearningPathStep[]
+
+  @@index([studentId, isActive])
+  @@map("student_learning_paths")
+}
+
+model LearningPathStep {
+  id               String                 @id @default(uuid()) @db.Uuid
+  pathId           String                 @map("path_id") @db.Uuid
+  orderIndex       Int                    @map("order_index")
+  title            String
+  description      String?
+  discipline       String?                @map("discipline")
+  skill            String?                @map("skill")
+  questionKey      String                 @map("question_key")
+  questionYear     Int                    @map("question_year")
+  questionIndex    Int                    @map("question_index")
+  questionLanguage String?                @map("question_language")
+  status           LearningPathStepStatus @default(locked)
+  completedAt      DateTime?              @map("completed_at")
+
+  path StudentLearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, orderIndex])
+  @@index([pathId, status])
+  @@map("learning_path_steps")
 }
 
 model TeacherProfile {
