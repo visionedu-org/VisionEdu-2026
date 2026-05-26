@@ -134,7 +134,7 @@ export function RegisterForm() {
 
   function handleRegisterError(
     err: unknown,
-    setError: typeof studentForm.setError,
+    setError: (...args: any[]) => void,
     values: RegisterStudentFormValues | RegisterTeacherFormValues
   ) {
     if (err instanceof ApiError) {
@@ -284,7 +284,7 @@ export function RegisterForm() {
             }
             register={teacherForm.register as never}
             setValue={teacherForm.setValue as never}
-            errors={formErrors.schools}
+            errors={(formErrors as any).schools}
           />
 
           <LegalConsentBlock
@@ -317,8 +317,10 @@ function RegisterCommonFields({
   register,
   errors,
 }: {
-  register: ReturnType<typeof useForm<RegisterStudentFormValues>>["register"];
-  errors: ReturnType<typeof useForm<RegisterStudentFormValues>>["formState"]["errors"];
+  // Formulários student/teacher possuem valores diferentes.
+  // Usamos `any` aqui para evitar duplicação de componente/tipos genéricos.
+  register: any;
+  errors: any;
 }) {
   return (
     <>
