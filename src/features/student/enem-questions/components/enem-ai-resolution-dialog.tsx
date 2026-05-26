@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { ApiError } from "@/lib/api-client";
 import { enemQuestionsService } from "@/services/enem-questions.service";
@@ -38,11 +38,10 @@ export function EnemAiResolutionDialog({
 }: EnemAiResolutionDialogProps) {
   const [state, setState] = useState<ResolutionState>({ status: "idle" });
 
-  useEffect(() => {
-    if (!open) {
-      setState({ status: "idle" });
-    }
-  }, [open, question.year, question.index, record.selectedLetter]);
+  function handleDialogOpenChange(nextOpen: boolean) {
+    setState({ status: "idle" });
+    onOpenChange(nextOpen);
+  }
 
   async function handleGenerateResolution() {
     if (state.status === "loading") return;
@@ -70,7 +69,7 @@ export function EnemAiResolutionDialog({
   const hasExplanation = state.status === "success";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="z-[60] max-h-[min(90vh,32rem)] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 pr-8">
@@ -152,7 +151,7 @@ export function EnemAiResolutionDialog({
             variant="outline"
             className="min-h-11 w-full"
             disabled={isLoading}
-            onClick={() => onOpenChange(false)}
+              onClick={() => handleDialogOpenChange(false)}
           >
             Fechar
           </Button>
