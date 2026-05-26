@@ -36,7 +36,8 @@ export const studentService = {
 
   generateLearningPath(): Promise<StudentLearningPathResponse> {
     return apiClient.post<StudentLearningPathResponse>(
-      "/api/v1/students/me/learning-path/generate"
+      "/api/v1/students/me/learning-path/generate",
+      {}
     );
   },
 
