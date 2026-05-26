@@ -7,7 +7,6 @@ import {
   BookOpen,
   GraduationCap,
   Sparkles,
-  Target,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { ApiError } from "@/lib/api-client";
@@ -155,8 +154,9 @@ export function StudentDashboard() {
     return (
       <AppPage>
         <Skeleton className="h-10 w-56" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
+        <div className="grid w-full grid-cols-2 gap-4">
+          <Skeleton className="col-span-2 h-24" />
+          {[1, 2].map((i) => (
             <Skeleton key={i} className="h-20" />
           ))}
         </div>
@@ -196,8 +196,8 @@ export function StudentDashboard() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="sm:col-span-2 lg:col-span-3">
+      <div className="grid w-full grid-cols-2 gap-4">
+        <Card className="col-span-2">
           <CardHeader className="flex-row items-center gap-3 space-y-0">
             <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-primary">
               <GraduationCap className="size-5" aria-hidden />
@@ -215,24 +215,6 @@ export function StudentDashboard() {
               {dashboard?.grade ?? user?.grade}º ano · Turma{" "}
               {dashboard?.classIdentifier ?? user?.class_identifier}
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className={dashboardStatCardHeaderClass}>
-            <span className="flex size-8 items-center justify-center rounded-lg bg-brand-green/15 text-emerald-700 dark:text-brand-green">
-              <Target className="size-4" aria-hidden />
-            </span>
-            <CardDescription>Atividades</CardDescription>
-          </CardHeader>
-          <CardContent className={dashboardStatCardContentClass}>
-            <DashboardMetricRow
-              done={dashboard?.activitiesCompleted ?? 0}
-              total={dashboard?.activitiesTotal ?? 0}
-              label="Feitos"
-              href="/student/atividades"
-              linkLabel="Resolver Atividades"
-            />
           </CardContent>
         </Card>
 

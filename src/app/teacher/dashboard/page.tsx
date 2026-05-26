@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Users, BarChart3, FileText } from "lucide-react";
+import { ArrowRight, Users, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,7 +41,7 @@ export default function TeacherDashboardPage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid w-full grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex-row items-center gap-3 space-y-0">
             <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -58,26 +58,6 @@ export default function TeacherDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex-row items-center gap-3 space-y-0">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-brand-green/15 text-emerald-700 dark:text-brand-green">
-              <BarChart3 className="size-5" aria-hidden />
-            </span>
-            <div>
-              <CardTitle>BNCC</CardTitle>
-              <CardDescription>Lacunas e recomposição</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Link
-              href="/teacher/turmas"
-              className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
-            >
-              Ver turmas →
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="sm:col-span-2 lg:col-span-1">
           <CardHeader className="flex-row items-center gap-3 space-y-0">
             <span className="flex size-10 items-center justify-center rounded-xl bg-brand-yellow/20 text-amber-800 dark:text-brand-yellow">
               <FileText className="size-5" aria-hidden />
