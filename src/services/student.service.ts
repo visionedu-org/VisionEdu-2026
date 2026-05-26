@@ -4,10 +4,14 @@ import type {
   Activity,
   ActivityAnswer,
   ActivitySubmitResult,
-  LearningPathModule,
   StudentDashboardData,
+  StudentLearningPathResponse,
   StudentProfile,
 } from "@/types/domain";
+import type {
+  LearningPathStepDetailResponse,
+  LearningPathStepSubmitResult,
+} from "@/types/learning-path-api";
 import type {
   MarkMaterialReadResult,
   MaterialListFilters,
@@ -24,9 +28,36 @@ export const studentService = {
     return apiClient.get<StudentProfile>("/api/v1/students/me/profile");
   },
 
-  getLearningPath(): Promise<{ modules: LearningPathModule[] }> {
-    return apiClient.get<{ modules: LearningPathModule[] }>(
+  getLearningPath(): Promise<StudentLearningPathResponse> {
+    return apiClient.get<StudentLearningPathResponse>(
       "/api/v1/students/me/learning-path"
+    );
+  },
+
+  generateLearningPath(): Promise<StudentLearningPathResponse> {
+    return apiClient.post<StudentLearningPathResponse>(
+      "/api/v1/students/me/learning-path/generate"
+    );
+  },
+
+  getLearningPathStep(stepId: string): Promise<LearningPathStepDetailResponse> {
+    return apiClient.get<LearningPathStepDetailResponse>(
+      `/api/v1/students/me/learning-path/steps/${encodeURIComponent(stepId)}`
+    );
+  },
+
+  submitLearningPathStep(
+    stepId: string,
+    selectedLetter: string
+  ): Promise<
+    LearningPathStepSubmitResult & {
+      modules: StudentLearningPathResponse["modules"];
+      pathId: string;
+    }
+  > {
+    return apiClient.post(
+      `/api/v1/students/me/learning-path/steps/${encodeURIComponent(stepId)}/submit`,
+      { selectedLetter }
     );
   },
 

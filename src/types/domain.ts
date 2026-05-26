@@ -60,7 +60,20 @@ export interface LearningPathModule {
   id: string;
   title: string;
   status: LearningPathModuleStatus;
+  /** Atividade legada (mock); trilhas IA usam pathId + id da etapa. */
   activityId?: string;
+  pathId?: string;
+  stepOrder?: number;
+  description?: string;
+  skill?: string;
+  discipline?: string;
+}
+
+export interface StudentLearningPathResponse {
+  pathId: string | null;
+  pathTitle: string | null;
+  pathSummary: string | null;
+  modules: LearningPathModule[];
 }
 
 interface PendingActivitySummary {
