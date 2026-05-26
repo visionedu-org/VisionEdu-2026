@@ -12,6 +12,7 @@ import {
   toggleEnemFavorite,
   toggleEnemReview,
 } from "@/lib/enem/storage";
+import { enemQuestionsService } from "@/services/enem-questions.service";
 import { questionKeyFromQuestion } from "@/lib/enem/question-key";
 import type {
   EnemProgressStats,
@@ -47,6 +48,14 @@ export function useEnemProgress() {
     (question: EnemQuestion, letter: EnemAlternativeLetter) => {
       const record = recordEnemAnswer(question, letter);
       notifyEnemProgressChange();
+      void enemQuestionsService
+        .recordAttempt({
+          year: question.year,
+          index: question.index,
+          language: question.language,
+          selectedLetter: letter,
+        })
+        .catch(() => undefined);
       return record;
     },
     []

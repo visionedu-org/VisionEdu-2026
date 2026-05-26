@@ -1,5 +1,9 @@
 import { apiClient } from "@/lib/api-client";
 import type {
+  EnemAiResolutionRequestBody,
+  EnemAiResolutionResponse,
+} from "@/types/enem-ai-resolution";
+import type {
   EnemExam,
   EnemQuestion,
   EnemQuestionsQuery,
@@ -44,5 +48,41 @@ export const enemQuestionsService = {
     return apiClient.get<EnemQuestion>(
       `/api/v1/students/enem/exams/${year}/questions/${index}${qs}`
     );
+  },
+
+  generateAiResolution(
+    body: EnemAiResolutionRequestBody
+  ): Promise<EnemAiResolutionResponse> {
+    return apiClient.post<EnemAiResolutionResponse>(
+      "/api/v1/students/enem/ai-resolution",
+      body
+    );
+  },
+
+  recordAttempt(body: {
+    year: number;
+    index: number;
+    language?: string | null;
+    selectedLetter: string;
+  }): Promise<{ isCorrect: boolean; questionKey: string }> {
+    return apiClient.post("/api/v1/students/enem/attempts", body);
+  },
+
+  syncAttempts(
+    attempts: Array<{
+      questionKey: string;
+      year: number;
+      index: number;
+      language?: string | null;
+      discipline?: string | null;
+      selectedLetter: string;
+      correctLetter: string;
+      isCorrect: boolean;
+      answeredAt?: string;
+    }>
+  ): Promise<{ synced: number }> {
+    return apiClient.post("/api/v1/students/enem/attempts/sync", {
+      attempts,
+    });
   },
 };
