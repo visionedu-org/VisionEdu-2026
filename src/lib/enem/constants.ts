@@ -53,9 +53,9 @@ export const KNOWLEDGE_AREA_DISCIPLINES: Record<
 export const DEFAULT_QUESTIONS_PAGE_SIZE = 10;
 
 export const MIN_QUESTIONS_PAGE_SIZE = 1;
-export const MAX_QUESTIONS_PAGE_SIZE = 90;
+export const MAX_QUESTIONS_PAGE_SIZE = 50;
 
-/** Limita ao intervalo aceito pela API (1–90). */
+/** Limita ao intervalo aceito pela API ENEM (1–50). */
 export function clampQuestionsPageSize(size: number): number {
   const parsed = Number.isFinite(size) ? Math.round(size) : DEFAULT_QUESTIONS_PAGE_SIZE;
   return Math.min(

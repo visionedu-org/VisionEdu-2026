@@ -1,3 +1,4 @@
+import { MAX_QUESTIONS_PAGE_SIZE } from "@/lib/enem/constants";
 import { enrichQuestion } from "@/lib/enem/question-metadata";
 import { jsonError } from "@/server/auth/api-error";
 import { AuthRequiredError, requireStudent } from "@/server/auth/require-auth";
@@ -30,7 +31,7 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const limit = Math.min(
       Math.max(Number.parseInt(searchParams.get("limit") ?? "10", 10) || 10, 1),
-      90
+      MAX_QUESTIONS_PAGE_SIZE
     );
     const offset = Math.max(
       Number.parseInt(searchParams.get("offset") ?? "0", 10) || 0,
