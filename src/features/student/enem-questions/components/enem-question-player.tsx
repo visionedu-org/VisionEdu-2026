@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Flag,
+  Sparkles,
 } from "lucide-react";
 import {
   ENEM_DIFFICULTY_LABELS,
@@ -15,6 +16,7 @@ import {
 import { buildQuestionKey } from "@/lib/enem/question-key";
 import type { EnemAlternativeLetter, EnemQuestion } from "@/types/enem";
 import { Button } from "@/components/ui/button";
+import { EnemAiResolutionDialog } from "./enem-ai-resolution-dialog";
 import { EnemQuestionAlternatives } from "./enem-question-alternatives";
 import { EnemQuestionContext } from "./enem-question-context";
 import { EnemQuestionFeedback } from "./enem-question-feedback";
@@ -101,9 +103,11 @@ function EnemQuestionPlayerBody({
   const [revealed, setRevealed] = useState(Boolean(existing));
   const [favorite, setFavorite] = useState(() => checkFavorite(question));
   const [forReview, setForReview] = useState(() => checkReview(question));
+  const [aiResolutionOpen, setAiResolutionOpen] = useState(false);
 
   const progress = total > 0 ? ((currentIndex + 1) / total) * 100 : 0;
   const record = revealed ? getAnswer(question) : undefined;
+  const showAiResolution = Boolean(record && !record.isCorrect);
 
   function handleConfirm() {
     if (!selected || revealed) return;
@@ -153,8 +157,29 @@ function EnemQuestionPlayerBody({
               className={`size-5 ${forReview ? "fill-amber-500 text-amber-500" : ""}`}
             />
           </Button>
+          {showAiResolution && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Pedir resolução com IA"
+              aria-expanded={aiResolutionOpen}
+              onClick={() => setAiResolutionOpen(true)}
+            >
+              <Sparkles className="size-5 text-primary" aria-hidden />
+            </Button>
+          )}
         </div>
       </div>
+
+      {record && (
+        <EnemAiResolutionDialog
+          open={aiResolutionOpen}
+          onOpenChange={setAiResolutionOpen}
+          question={question}
+          record={record}
+        />
+      )}
 
       <div className="mt-2 flex shrink-0 flex-wrap gap-1.5 text-xs">
         <MetaTag>ENEM {question.year}</MetaTag>

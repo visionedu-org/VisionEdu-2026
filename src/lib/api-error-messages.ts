@@ -9,6 +9,9 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   payload_too_large: "Arquivo ou requisição muito grande.",
   unsupported_media_type: "Tipo de arquivo não permitido.",
   internal_error: "Erro interno. Tente novamente em instantes.",
+  n8n_not_configured:
+    "Resolução com IA indisponível no momento. O serviço ainda não foi configurado.",
+  n8n_error: "Não foi possível gerar a resolução com IA. Tente novamente.",
 };
 
 const STATUS_FALLBACK_MESSAGES: Record<number, string> = {
