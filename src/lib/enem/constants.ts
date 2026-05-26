@@ -65,3 +65,27 @@ export function clampQuestionsPageSize(size: number): number {
 }
 
 export const SEARCH_DEBOUNCE_MS = 300;
+
+/** Intervalo mínimo entre requisições ENEM no cliente (fila serial). */
+export const ENEM_API_MIN_REQUEST_INTERVAL_MS = 200;
+
+/** TTL do cache em memória de listagens/questões ENEM. */
+export const ENEM_API_CACHE_TTL_MS = 10 * 60 * 1000;
+
+/** Tentativas após HTTP 429 antes de falhar. */
+export const ENEM_API_429_MAX_RETRIES = 3;
+
+/** Atraso base (ms) para backoff em 429. */
+export const ENEM_API_429_BASE_DELAY_MS = 1000;
+
+/** Máximo de chamadas à API por lote ao percorrer vários anos. */
+export const ENEM_MAX_REQUESTS_PER_BATCH = 4;
+
+/** Atraso entre páginas carregadas automaticamente com filtros ativos. */
+export const ENEM_AUTO_LOAD_DELAY_MS = 500;
+
+/** Páginas extras automáticas quando filtros reduzem o resultado. */
+export const ENEM_MAX_AUTO_PAGES = 6;
+
+/** Mínimo de questões filtradas antes de parar o carregamento automático. */
+export const ENEM_MIN_FILTERED_RESULTS = 8;
