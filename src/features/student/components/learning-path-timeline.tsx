@@ -37,6 +37,10 @@ export function LearningPathTimeline({
       onLockedPress?.();
       return;
     }
+    if (module.pathId) {
+      router.push(`/student/trilha/etapa/${module.id}`);
+      return;
+    }
     if (module.activityId) {
       router.push(`/student/atividade/${module.activityId}`);
     }

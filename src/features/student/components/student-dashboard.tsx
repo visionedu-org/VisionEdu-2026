@@ -3,14 +3,22 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  AlertCircle,
   BookOpen,
   GraduationCap,
   Sparkles,
   Target,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
+import { ApiError } from "@/lib/api-client";
+import { getEnemProgress } from "@/lib/enem/storage";
 import { studentService } from "@/services/student.service";
-import type { LearningPathModule, StudentDashboardData } from "@/types/domain";
+import { enemQuestionsService } from "@/services/enem-questions.service";
+import type {
+  LearningPathModule,
+  StudentDashboardData,
+  StudentLearningPathResponse,
+} from "@/types/domain";
 import { LearningPathTimeline } from "./learning-path-timeline";
 import { cetiSchool } from "@/mocks/data/ceti-seed";
 import {
@@ -24,6 +32,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AppPage } from "@/components/layout/app-page";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const dashboardStatCardHeaderClass =
   "flex-row items-center gap-2 space-y-0 px-4 py-3 pb-0";
@@ -67,9 +76,24 @@ function DashboardMetricRow({
 export function StudentDashboard() {
   const user = useAuthStore((s) => s.user);
   const [dashboard, setDashboard] = useState<StudentDashboardData | null>(null);
-  const [modules, setModules] = useState<LearningPathModule[]>([]);
+  const [learningPath, setLearningPath] =
+    useState<StudentLearningPathResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generatingPath, setGeneratingPath] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [pathGenerateError, setPathGenerateError] = useState<string | null>(
+    null
+  );
+
+  const modules = learningPath?.modules ?? [];
+
+  useEffect(() => {
+    const progress = getEnemProgress();
+    const attempts = Object.values(progress.answers);
+    if (attempts.length > 0) {
+      void enemQuestionsService.syncAttempts(attempts).catch(() => undefined);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,12 +105,12 @@ export function StudentDashboard() {
         ]);
         if (!cancelled) {
           setDashboard(dash);
-          setModules(path.modules);
+          setLearningPath(path);
         }
       } catch {
         if (!cancelled) {
           setDashboard(null);
-          setModules([]);
+          setLearningPath(null);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -103,6 +127,24 @@ export function StudentDashboard() {
     const t = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  async function handleGenerateLearningPath() {
+    setGeneratingPath(true);
+    setPathGenerateError(null);
+    try {
+      const generated = await studentService.generateLearningPath();
+      setLearningPath(generated);
+      setToast("Trilha gerada com sucesso! Comece pela etapa em progresso.");
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Não foi possível gerar a trilha. Tente novamente em instantes.";
+      setPathGenerateError(message);
+    } finally {
+      setGeneratingPath(false);
+    }
+  }
 
   const firstName = user?.name?.split(" ")[0] ?? "estudante";
   const schoolLine = dashboard
@@ -233,13 +275,54 @@ export function StudentDashboard() {
       </div>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-bold">Sua trilha de aprendizagem</h2>
-        <LearningPathTimeline
-          modules={modules}
-          onLockedPress={() =>
-            setToast("Complete o módulo anterior para desbloquear.")
-          }
-        />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold">Sua trilha de aprendizagem</h2>
+            {learningPath?.pathTitle && (
+              <p className="text-sm text-muted-foreground">
+                {learningPath.pathTitle}
+              </p>
+            )}
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            className="min-h-11"
+            disabled={generatingPath}
+            onClick={() => void handleGenerateLearningPath()}
+          >
+            <Sparkles className="size-4" aria-hidden />
+            {generatingPath ? "Gerando trilha…" : "Gerar trilha com IA"}
+          </Button>
+        </div>
+
+        {learningPath?.pathSummary && (
+          <p className="text-sm text-muted-foreground">
+            {learningPath.pathSummary}
+          </p>
+        )}
+
+        {pathGenerateError && (
+          <Alert variant="destructive">
+            <AlertCircle className="size-4" aria-hidden />
+            <AlertTitle>Não foi possível gerar a trilha</AlertTitle>
+            <AlertDescription>{pathGenerateError}</AlertDescription>
+          </Alert>
+        )}
+
+        {modules.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
+            Você ainda não tem uma trilha ativa. Responda questões ENEM para
+            personalizar o diagnóstico e clique em &quot;Gerar trilha com IA&quot;.
+          </p>
+        ) : (
+          <LearningPathTimeline
+            modules={modules}
+            onLockedPress={() =>
+              setToast("Acerte a questão da etapa anterior para desbloquear.")
+            }
+          />
+        )}
       </section>
     </AppPage>
   );
