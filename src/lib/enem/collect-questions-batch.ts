@@ -1,6 +1,9 @@
 import { applyClientQuestionFilters } from "@/lib/enem/filter-questions";
-import { MAX_QUESTIONS_PAGE_SIZE } from "@/lib/enem/constants";
-import { enemQuestionsService } from "@/services/enem-questions.service";
+import {
+  ENEM_MAX_REQUESTS_PER_BATCH,
+  MAX_QUESTIONS_PAGE_SIZE,
+} from "@/lib/enem/constants";
+import { fetchEnemQuestionsList } from "@/lib/enem/enem-question-api";
 import type { EnemQuestion, EnemQuestionFilters } from "@/types/enem";
 
 function questionDedupKey(question: EnemQuestion): string {
@@ -11,6 +14,8 @@ export interface CollectQuestionsBatchState {
   offsets: Record<number, number>;
   hasMoreByYear: Record<number, boolean>;
   seenKeys: Set<string>;
+  /** Índice de rodízio para distribuir requisições entre os anos. */
+  yearCursor: number;
 }
 
 export function createCollectQuestionsBatchState(
@@ -24,12 +29,21 @@ export function createCollectQuestionsBatchState(
     offsets: {},
     hasMoreByYear,
     seenKeys: new Set(),
+    yearCursor: 0,
   };
 }
 
+function yearsWithMoreData(
+  years: number[],
+  state: CollectQuestionsBatchState
+): number[] {
+  return years.filter((year) => state.hasMoreByYear[year] !== false);
+}
+
 /**
- * Coleta exatamente até `batchSize` questões (após filtros client-side),
- * percorrendo os anos em rodízio até atingir o limite ou esgotar as provas.
+ * Coleta até `batchSize` questões (após filtros client-side), fazendo no máximo
+ * {@link ENEM_MAX_REQUESTS_PER_BATCH} chamadas à API por invocação e percorrendo
+ * os anos em rodízio (uma requisição por vez).
  */
 export async function collectQuestionsBatch(
   years: number[],
@@ -51,52 +65,52 @@ export async function collectQuestionsBatch(
   };
 
   const batch: EnemQuestion[] = [];
-  let rotationsWithoutProgress = 0;
+  let apiCalls = 0;
 
-  while (batch.length < batchSize && rotationsWithoutProgress < years.length) {
-    let progressed = false;
+  while (
+    batch.length < batchSize &&
+    apiCalls < ENEM_MAX_REQUESTS_PER_BATCH
+  ) {
+    const activeYears = yearsWithMoreData(years, state);
+    if (activeYears.length === 0) break;
 
-    for (const year of years) {
+    const yearIndex = state.yearCursor % activeYears.length;
+    const year = activeYears[yearIndex];
+    state.yearCursor = (yearIndex + 1) % activeYears.length;
+
+    const remaining = batchSize - batch.length;
+    const offset = state.offsets[year] ?? 0;
+
+    const response = await fetchEnemQuestionsList({
+      year,
+      limit: Math.min(remaining, MAX_QUESTIONS_PAGE_SIZE),
+      offset,
+      language: clientFilters.language || undefined,
+    });
+
+    apiCalls += 1;
+    state.offsets[year] = offset + response.questions.length;
+    state.hasMoreByYear[year] = response.metadata.hasMore;
+
+    const filtered = applyClientQuestionFilters(
+      response.questions,
+      filterBase
+    );
+
+    for (const question of filtered) {
+      const key = questionDedupKey(question);
+      if (state.seenKeys.has(key)) continue;
+      state.seenKeys.add(key);
+      batch.push(question);
       if (batch.length >= batchSize) break;
-      if (state.hasMoreByYear[year] === false) continue;
-
-      const remaining = batchSize - batch.length;
-      const offset = state.offsets[year] ?? 0;
-
-      const response = await enemQuestionsService.listQuestions({
-        year,
-        limit: Math.min(remaining, MAX_QUESTIONS_PAGE_SIZE),
-        offset,
-        language: clientFilters.language || undefined,
-      });
-
-      state.offsets[year] = offset + response.questions.length;
-      state.hasMoreByYear[year] = response.metadata.hasMore;
-
-      const filtered = applyClientQuestionFilters(
-        response.questions,
-        filterBase
-      );
-
-      for (const question of filtered) {
-        const key = questionDedupKey(question);
-        if (state.seenKeys.has(key)) continue;
-        state.seenKeys.add(key);
-        batch.push(question);
-        progressed = true;
-        if (batch.length >= batchSize) break;
-      }
-
-      if (response.questions.length === 0 && !response.metadata.hasMore) {
-        state.hasMoreByYear[year] = false;
-      }
     }
 
-    if (!progressed) break;
-    rotationsWithoutProgress += 1;
+    if (response.questions.length === 0 && !response.metadata.hasMore) {
+      state.hasMoreByYear[year] = false;
+    }
   }
 
-  const hasMore = years.some((year) => state.hasMoreByYear[year] !== false);
+  const hasMore = years.some((y) => state.hasMoreByYear[y] !== false);
 
   return { questions: batch, hasMore };
 }
