@@ -10,11 +10,13 @@ import { AppPage } from "@/components/layout/app-page";
 import { Button } from "@/components/ui/button";
 import { AttachmentDownloadButton } from "@/components/materials/attachment-download-button";
 import { getStudentAttachmentDownloadPath } from "@/lib/materials-download";
+import { MaterialEnemQuestionsSection } from "@/features/student/components/material-enem-questions-section";
 
 const CONTENT_TYPE_LABELS: Record<MaterialContentType, string> = {
   text: "Texto",
   video_link: "Vídeo",
   file: "Arquivo",
+  questions: "Questões",
 };
 
 function formatSentAt(iso: string): string {
@@ -159,6 +161,9 @@ export function MaterialDetail({ materialId }: MaterialDetailProps) {
         </p>
         <h1 className="text-2xl font-bold leading-tight">{material.title}</h1>
         <p className="text-sm text-muted-foreground">
+          Professor(a): {material.teacherName}
+        </p>
+        <p className="text-sm text-muted-foreground">
           Enviado em {formatSentAt(material.sentAt)}
         </p>
       </header>
@@ -214,6 +219,13 @@ export function MaterialDetail({ materialId }: MaterialDetailProps) {
           </ul>
         </section>
       )}
+
+      {material.contentType === "questions" &&
+        material.enemQuestions.length > 0 && (
+          <MaterialEnemQuestionsSection
+            questionRefs={material.enemQuestions}
+          />
+        )}
 
       {material.contentType === "video_link" && material.videoUrl && (
         <section className="space-y-3" aria-labelledby="material-video-heading">

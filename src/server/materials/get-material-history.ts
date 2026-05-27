@@ -1,6 +1,7 @@
 import type { MaterialLogAction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type {
+  MaterialContentType,
   MaterialHistoryEntry,
   MaterialHistoryResponse,
 } from "@/types/materials";
@@ -12,6 +13,13 @@ const ACTION_LABELS: Record<MaterialLogAction, string> = {
   updated: "Atualizado",
   deleted: "Excluído",
   downloaded: "Baixado",
+};
+
+const CONTENT_TYPE_LABELS: Record<MaterialContentType, string> = {
+  text: "Texto",
+  video_link: "Link de vídeo",
+  file: "Arquivo",
+  questions: "Questões",
 };
 
 function mapActionLabel(action: MaterialLogAction): string {
@@ -45,7 +53,9 @@ function describeHistoryEntry(
     }
     const contentType = metadata.contentType;
     if (typeof contentType === "string" && contentType.length > 0) {
-      parts.push(`tipo: ${contentType}`);
+      const typeLabel =
+        CONTENT_TYPE_LABELS[contentType as MaterialContentType] ?? contentType;
+      parts.push(`tipo: ${typeLabel}`);
     }
     return parts.length > 0 ? parts.join(" · ") : null;
   }

@@ -24,6 +24,7 @@ export async function getStudentMaterial(
     },
     select: {
       id: true,
+      teacherName: true,
       title: true,
       description: true,
       discipline: true,
@@ -41,6 +42,16 @@ export async function getStudentMaterial(
         },
         orderBy: { createdAt: "asc" },
       },
+      enemQuestions: {
+        select: {
+          questionKey: true,
+          year: true,
+          index: true,
+          language: true,
+          sortOrder: true,
+        },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
 
@@ -50,6 +61,7 @@ export async function getStudentMaterial(
 
   return {
     id: material.id,
+    teacherName: material.teacherName,
     title: material.title,
     description: material.description,
     discipline: material.discipline,
@@ -62,6 +74,13 @@ export async function getStudentMaterial(
       fileName: attachment.fileName,
       mimeType: attachment.mimeType,
       sizeBytes: Number(attachment.sizeBytes),
+    })),
+    enemQuestions: material.enemQuestions.map((question) => ({
+      questionKey: question.questionKey,
+      year: question.year,
+      index: question.index,
+      language: question.language,
+      sortOrder: question.sortOrder,
     })),
   };
 }

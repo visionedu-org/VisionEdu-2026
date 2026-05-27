@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { buildQuestionKey } from "@/lib/enem/question-key";
 import { TEACHER_DISCIPLINES } from "@/lib/validations/teacher";
 import type { MaterialContentType, MaterialListFilters } from "@/types/materials";
 
@@ -6,7 +7,16 @@ const materialContentTypeSchema = z.enum([
   "text",
   "video_link",
   "file",
+  "questions",
 ]);
+
+const materialEnemQuestionSchema = z.object({
+  year: z.number().int().min(2009).max(2100),
+  index: z.number().int().min(1).max(200),
+  language: z.string().trim().optional().nullable(),
+});
+
+const MAX_MATERIAL_ENEM_QUESTIONS = 50;
 
 const MAX_SEARCH_LENGTH = 200;
 
@@ -40,6 +50,7 @@ export const createMaterialSchema = z
     attachmentIds: z
       .array(z.string().uuid("Identificador de anexo inválido"))
       .optional(),
+    enemQuestions: z.array(materialEnemQuestionSchema).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.contentType === "video_link") {
@@ -99,6 +110,54 @@ export const createMaterialSchema = z
         code: "custom",
         message: "Anexos só são permitidos para materiais do tipo arquivo",
         path: ["attachmentIds"],
+      });
+    }
+
+    if (data.contentType === "questions") {
+      const questions = data.enemQuestions ?? [];
+      if (questions.length < 1) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Selecione ao menos uma questão ENEM",
+          path: ["enemQuestions"],
+        });
+        return;
+      }
+      if (questions.length > MAX_MATERIAL_ENEM_QUESTIONS) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Selecione no máximo ${MAX_MATERIAL_ENEM_QUESTIONS} questões`,
+          path: ["enemQuestions"],
+        });
+        return;
+      }
+      const keys = new Set<string>();
+      for (const question of questions) {
+        const key = buildQuestionKey(
+          question.year,
+          question.index,
+          question.language
+        );
+        if (keys.has(key)) {
+          ctx.addIssue({
+            code: "custom",
+            message: "A lista de questões contém itens duplicados",
+            path: ["enemQuestions"],
+          });
+          return;
+        }
+        keys.add(key);
+      }
+    }
+
+    if (
+      data.contentType !== "questions" &&
+      (data.enemQuestions?.length ?? 0) > 0
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Questões ENEM só são permitidas para materiais do tipo questões",
+        path: ["enemQuestions"],
       });
     }
   });

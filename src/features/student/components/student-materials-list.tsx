@@ -17,6 +17,7 @@ const CONTENT_TYPE_LABELS: Record<MaterialContentType, string> = {
   text: "Texto",
   video_link: "Vídeo",
   file: "Arquivo",
+  questions: "Questões",
 };
 
 const SELECT_CLASS =

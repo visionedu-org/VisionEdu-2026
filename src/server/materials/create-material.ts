@@ -1,4 +1,5 @@
 import type { MaterialContentType } from "@prisma/client";
+import { buildQuestionKey } from "@/lib/enem/question-key";
 import { prisma } from "@/lib/prisma";
 import type { CreateMaterialInput } from "@/lib/validations/materials";
 import { assertTeacherOwnsClass, assertTeacherOwnsDiscipline, assertTeacherOwnsSchool } from "@/server/materials/assert-teacher-class";
@@ -42,12 +43,14 @@ export async function createMaterial(
 ): Promise<CreateMaterialResult> {
   const teacher = await prisma.teacherProfile.findUnique({
     where: { userId: teacherUserId },
-    select: { id: true },
+    select: { id: true, user: { select: { name: true } } },
   });
 
   if (!teacher) {
     throw new TeacherProfileNotFoundError();
   }
+
+  const teacherName = teacher.user.name.trim();
 
   const classIds = [
     ...new Set(payload.recipients.map((recipient) => recipientClassId(recipient))),
@@ -104,6 +107,21 @@ export async function createMaterial(
       ? [...new Set(payload.attachmentIds ?? [])]
       : [];
 
+  const enemQuestions =
+    payload.contentType === "questions"
+      ? (payload.enemQuestions ?? []).map((question, sortOrder) => ({
+          questionKey: buildQuestionKey(
+            question.year,
+            question.index,
+            question.language
+          ),
+          year: question.year,
+          index: question.index,
+          language: question.language?.trim() || null,
+          sortOrder,
+        }))
+      : [];
+
   if (payload.contentType === "file" && attachmentIds.length > 0) {
     const pending = await prisma.materialAttachment.findMany({
       where: {
@@ -125,6 +143,7 @@ export async function createMaterial(
     const created = await tx.educationalMaterial.create({
       data: {
         teacherId: teacher.id,
+        teacherName,
         schoolId,
         title: payload.title.trim(),
         description: payload.description.trim(),
@@ -156,12 +175,22 @@ export async function createMaterial(
               contentType: payload.contentType,
               recipientCount: payload.recipients.length,
               attachmentCount: attachmentIds.length,
+              questionCount: enemQuestions.length,
             },
           },
         },
       },
       select: { id: true, sentAt: true },
     });
+
+    if (enemQuestions.length > 0) {
+      await tx.materialEnemQuestion.createMany({
+        data: enemQuestions.map((question) => ({
+          materialId: created.id,
+          ...question,
+        })),
+      });
+    }
 
     if (attachmentIds.length > 0) {
       const updated = await tx.materialAttachment.updateMany({

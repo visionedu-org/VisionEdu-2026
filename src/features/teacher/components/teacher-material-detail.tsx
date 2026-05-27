@@ -19,6 +19,7 @@ const CONTENT_TYPE_LABELS: Record<MaterialContentType, string> = {
   text: "Texto",
   video_link: "Link de vídeo",
   file: "Arquivo",
+  questions: "Questões",
 };
 
 function formatSentAt(iso: string): string {

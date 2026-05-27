@@ -7,9 +7,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2 } from "lucide-react";
 import {
   contentFormSchema,
+  enemQuestionsFromSelection,
   TEACHER_DISCIPLINES,
+  validateContentFormEnemSelection,
   type ContentFormValues,
+  type TeacherDiscipline,
 } from "@/lib/validations/teacher";
+import type { EnemQuestion } from "@/types/enem";
+import { TeacherQuestionPickerOverlay } from "@/features/teacher/components/teacher-question-picker-overlay";
+import {
+  getTeacherSubjectsForClass,
+  teacherTeachesSubjectInClass,
+} from "@/lib/teacher-class-subjects";
 import type { ClassStudentOption } from "@/types/materials";
 import type { ClassGroup } from "@/types/domain";
 import { teacherService } from "@/services/teacher.service";
@@ -40,7 +49,8 @@ function buildDefaultFormValues(
   return {
     title: "",
     description: "",
-    subject: preferredClass?.materias?.[0] ?? "Matemática",
+    subject:
+      getTeacherSubjectsForClass(preferredClass)[0] ?? TEACHER_DISCIPLINES[0],
     schoolId: preferredClass?.school_id ?? "",
     grade: (preferredClass?.grade ?? "2") as ContentFormValues["grade"],
     classId: preferredClass?.id ?? "",
@@ -88,21 +98,34 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
   const [classStudents, setClassStudents] = useState<ClassStudentOption[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsError, setStudentsError] = useState<string | null>(null);
+  const [selectedEnemQuestions, setSelectedEnemQuestions] = useState<
+    EnemQuestion[]
+  >([]);
+  const [questionPickerOpen, setQuestionPickerOpen] = useState(false);
 
   const form = useForm<ContentFormValues>({
     resolver: zodResolver(contentFormSchema) as Resolver<ContentFormValues>,
     defaultValues: defaultFormValues,
   });
 
-  const [schoolId, grade, contentType, classId, recipientMode] = useWatch({
-    control: form.control,
-    name: ["schoolId", "grade", "contentType", "classId", "recipientMode"],
-  });
+  const [schoolId, grade, contentType, classId, recipientMode, subject] =
+    useWatch({
+      control: form.control,
+      name: [
+        "schoolId",
+        "grade",
+        "contentType",
+        "classId",
+        "recipientMode",
+        "subject",
+      ],
+    });
   const resolvedSchoolId = schoolId ?? defaultFormValues.schoolId;
   const resolvedGrade = grade ?? defaultFormValues.grade;
   const resolvedContentType = contentType ?? "text";
   const resolvedClassId = classId ?? defaultFormValues.classId;
   const resolvedRecipientMode = recipientMode ?? "class";
+  const resolvedSubject = (subject ?? defaultFormValues.subject) as TeacherDiscipline;
 
   const classesForSchool = useMemo(
     () => assignedClasses.filter((c) => c.school_id === resolvedSchoolId),
@@ -125,12 +148,12 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
   );
 
   const availableSubjects = useMemo(
-    () =>
-      selectedClass?.materias && selectedClass.materias.length > 0
-        ? selectedClass.materias
-        : TEACHER_DISCIPLINES,
+    () => getTeacherSubjectsForClass(selectedClass),
     [selectedClass]
   );
+
+  const canSubmitMaterial =
+    assignedClasses.length > 0 && availableSubjects.length > 0;
 
   const isBusy = form.formState.isSubmitting || isUploading;
 
@@ -188,7 +211,7 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
     const currentSubject = form.getValues("subject");
     if (
       availableSubjects.length > 0 &&
-      !availableSubjects.includes(currentSubject)
+      !availableSubjects.includes(currentSubject as TeacherDiscipline)
     ) {
       form.setValue("subject", availableSubjects[0]!, { shouldValidate: true });
     }
@@ -396,17 +419,25 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
       return;
     }
 
-    if (
-      selectedClass.materias &&
-      selectedClass.materias.length > 0 &&
-      !selectedClass.materias.includes(values.subject)
-    ) {
+    if (!teacherTeachesSubjectInClass(selectedClass, values.subject)) {
       setRootError("Selecione uma matéria vinculada ao seu perfil nesta turma.");
       return;
     }
 
     if (values.contentType === "file" && selectedFiles.length === 0) {
       setRootError("Selecione ao menos um arquivo (PDF ou imagem).");
+      return;
+    }
+
+    const enemSelectionError = validateContentFormEnemSelection(
+      values.contentType,
+      selectedEnemQuestions
+    );
+    if (enemSelectionError) {
+      setRootError(enemSelectionError);
+      if (values.contentType === "questions") {
+        setQuestionPickerOpen(true);
+      }
       return;
     }
 
@@ -441,6 +472,10 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
               ]
             : [{ targetType: "class", classId: values.classId }],
         attachmentIds,
+        enemQuestions:
+          values.contentType === "questions"
+            ? enemQuestionsFromSelection(selectedEnemQuestions)
+            : undefined,
       });
 
       const resetValues = buildDefaultFormValues(assignedClasses, initialClassId);
@@ -448,6 +483,8 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
       setSubmitSuccess(true);
       form.reset(resetValues);
       setSelectedFiles([]);
+      setSelectedEnemQuestions([]);
+      setQuestionPickerOpen(false);
       setClassStudents([]);
       setStudentsError(null);
     } catch (err) {
@@ -473,9 +510,10 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
   }
 
   return (
+    <div className="flex w-full justify-center items-center">
     <form
       onSubmit={form.handleSubmit(onSubmit, onInvalid)}
-      className="w-full max-w-2xl space-y-4"
+      className="w-full max-w-2xl space-y-04 flex flex-col gap-4"
       noValidate
     >
       {submitSuccess && (
@@ -508,7 +546,7 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
         <Label htmlFor="content-title">Título</Label>
         <Input
           id="content-title"
-          className="min-h-11"
+          className="min-h-11 border-2 border-black"
           {...form.register("title")}
         />
         {form.formState.errors.title && (
@@ -523,7 +561,7 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
         <textarea
           id="content-description"
           rows={3}
-          className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+          className="flex min-h-11 w-full rounded-lg border bg-background px-3 py-2 text-sm border-2 border-black"
           {...form.register("description")}
         />
         {form.formState.errors.description && (
@@ -534,30 +572,10 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="content-subject">Disciplina</Label>
-        <select
-          id="content-subject"
-          className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"
-          {...form.register("subject")}
-        >
-          {availableSubjects.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
-        {form.formState.errors.subject && (
-          <p className="text-sm text-destructive">
-            {form.formState.errors.subject.message}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="content-school">Escola</Label>
         <select
           id="content-school"
-          className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"
+          className="flex min-h-11 w-full rounded-lg bg-background px-3 text-sm border-2 border-black"
           disabled={schools.length <= 1}
           {...form.register("schoolId")}
         >
@@ -579,7 +597,7 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
           <Label htmlFor="content-grade">Série</Label>
           <select
             id="content-grade"
-            className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"
+            className="flex min-h-11 w-full rounded-lg bg-background px-3 text-sm border-2 border-black"
             {...form.register("grade")}
           >
             {teacherGrades.map((g) => (
@@ -593,7 +611,7 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
           <Label htmlFor="content-class">Turma</Label>
           <select
             id="content-class"
-            className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"
+            className="flex min-h-11 w-full rounded-lg bg-background px-3 text-sm border-2 border-black"
             {...form.register("classId")}
           >
             {classes.map((c) => (
@@ -608,6 +626,39 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
             </p>
           )}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="content-subject">Disciplina</Label>
+        <select
+          id="content-subject"
+          className="flex min-h-11 w-full rounded-lg bg-background px-3 text-sm border-2 border-black"
+          disabled={availableSubjects.length === 0}
+          {...form.register("subject")}
+        >
+          {availableSubjects.length === 0 ? (
+            <option value="">
+              Nenhuma disciplina vinculada nesta turma
+            </option>
+          ) : (
+            availableSubjects.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))
+          )}
+        </select>
+        {availableSubjects.length === 0 && (
+          <p className="text-sm text-destructive" role="alert">
+            Você não possui disciplinas vinculadas a esta turma. Atualize seu
+            perfil ou fale com a coordenação.
+          </p>
+        )}
+        {form.formState.errors.subject && (
+          <p className="text-sm text-destructive">
+            {form.formState.errors.subject.message}
+          </p>
+        )}
       </div>
 
       <fieldset className="space-y-3">
@@ -648,7 +699,7 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
             <Label htmlFor="content-student">Aluno</Label>
             <select
               id="content-student"
-              className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"
+              className="flex min-h-11 w-full rounded-lg bg-background px-3 text-sm border-2 border-black"
               disabled={studentsLoading || classStudents.length === 0}
               {...form.register("studentId")}
             >
@@ -682,20 +733,53 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
         <Label htmlFor="content-type">Tipo de conteúdo</Label>
         <select
           id="content-type"
-          className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"
+          className="flex min-h-11 w-full rounded-lg bg-background px-3 text-sm border-2 border-black"
           {...contentTypeField}
           onChange={(event) => {
             void contentTypeField.onChange(event);
-            if (event.target.value !== "file") {
+            const nextType = event.target.value;
+            if (nextType !== "file") {
               setSelectedFiles([]);
+            }
+            if (nextType !== "questions") {
+              setSelectedEnemQuestions([]);
+              setQuestionPickerOpen(false);
+            } else {
+              setQuestionPickerOpen(true);
             }
           }}
         >
           <option value="text">Texto</option>
           <option value="video_link">Link de vídeo</option>
           <option value="file">Arquivo (PDF ou imagem)</option>
+          <option value="questions">Questões</option>
         </select>
       </div>
+
+      {resolvedContentType === "questions" && (
+        <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Questões selecionadas</p>
+            <p className="text-sm text-muted-foreground">
+              {selectedEnemQuestions.length === 0
+                ? "Nenhuma questão selecionada ainda."
+                : selectedEnemQuestions.length === 1
+                  ? "1 questão será enviada aos alunos."
+                  : `${selectedEnemQuestions.length} questões serão enviadas aos alunos.`}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11 w-full sm:w-auto"
+            onClick={() => setQuestionPickerOpen(true)}
+          >
+            {selectedEnemQuestions.length === 0
+              ? "Selecionar questões"
+              : "Alterar seleção de questões"}
+          </Button>
+        </div>
+      )}
 
       {resolvedContentType === "text" && (
         <div className="space-y-2">
@@ -703,7 +787,7 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
           <textarea
             id="content-body"
             rows={6}
-            className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+            className="flex min-h-11 w-full rounded-lg bg-background px-3 py-2 text-sm border-2 border-black"
             {...form.register("bodyText")}
           />
           {form.formState.errors.bodyText && (
@@ -817,7 +901,11 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
         </div>
       )}
 
-      <Button type="submit" className="w-full min-h-11" disabled={isBusy || assignedClasses.length === 0}>
+      <Button
+        type="submit"
+        className="w-full min-h-11"
+        disabled={isBusy || !canSubmitMaterial}
+      >
         {isUploading
           ? "Enviando arquivos…"
           : form.formState.isSubmitting
@@ -860,6 +948,16 @@ export function ContentForm({ initialClassId }: ContentFormProps) {
           Voltar ao painel
         </Link>
       </p>
+
+      <TeacherQuestionPickerOverlay
+        open={questionPickerOpen}
+        teacherSubject={resolvedSubject}
+        selected={selectedEnemQuestions}
+        onSelectedChange={setSelectedEnemQuestions}
+        onConfirm={() => setQuestionPickerOpen(false)}
+        onClose={() => setQuestionPickerOpen(false)}
+      />
     </form>
+    </div>
   );
 }

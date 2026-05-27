@@ -104,7 +104,10 @@ export function ShareActivityPanel({ activityId, title }: ShareActivityPanelProp
           <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
             <li>Peça aos alunos para abrirem a câmera ou um leitor de QR.</li>
             <li>Escaneiem o código para abrir a atividade no navegador.</li>
-            <li>Se ainda não estiverem logados, façam login como aluno demo.</li>
+            <li>
+              Se ainda não estiverem logados, façam login com a conta de demonstração
+              de aluno.
+            </li>
             <li>Na tela da atividade, respondam as questões e enviem ao final.</li>
           </ol>
         </div>

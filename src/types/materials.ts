@@ -1,5 +1,21 @@
 /** Alinhado ao enum Prisma `MaterialContentType`. */
-export type MaterialContentType = "text" | "video_link" | "file";
+export type MaterialContentType = "text" | "video_link" | "file" | "questions";
+
+/** Referência persistida de uma questão ENEM em um material. */
+export interface MaterialEnemQuestionRef {
+  questionKey: string;
+  year: number;
+  index: number;
+  language: string | null;
+  sortOrder: number;
+}
+
+/** Payload de questão ENEM ao criar material do tipo `questions`. */
+export interface MaterialEnemQuestionInput {
+  year: number;
+  index: number;
+  language?: string | null;
+}
 
 /** Alinhado ao enum Prisma `MaterialTargetType`. */
 export type MaterialTargetType = "class" | "student";
@@ -98,6 +114,7 @@ export interface CreateMaterialPayload {
   videoUrl?: string | null;
   recipients: MaterialRecipientInput[];
   attachmentIds?: string[];
+  enemQuestions?: MaterialEnemQuestionInput[];
 }
 
 export interface ClassStudentOption {
@@ -162,6 +179,7 @@ export interface StudentMaterialListResponse {
 /** Detalhe do material para o aluno. */
 export interface StudentMaterialDetail {
   id: string;
+  teacherName: string;
   title: string;
   description: string;
   discipline: string;
@@ -170,4 +188,5 @@ export interface StudentMaterialDetail {
   videoUrl: string | null;
   sentAt: string;
   attachments: MaterialAttachmentSummary[];
+  enemQuestions: MaterialEnemQuestionRef[];
 }

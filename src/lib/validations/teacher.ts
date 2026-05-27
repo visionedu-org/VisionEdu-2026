@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { buildQuestionKey } from "@/lib/enem/question-key";
 import { BNCC_COMPETENCY_CODES } from "@/mocks/data/bncc-competencies";
+import type { EnemQuestion } from "@/types/enem";
 
 export const TEACHER_DISCIPLINES = [
   "Matemática",
@@ -10,7 +12,12 @@ export const TEACHER_DISCIPLINES = [
 
 export type TeacherDiscipline = (typeof TEACHER_DISCIPLINES)[number];
 
-const teacherContentTypeSchema = z.enum(["text", "video_link", "file"]);
+const teacherContentTypeSchema = z.enum([
+  "text",
+  "video_link",
+  "file",
+  "questions",
+]);
 
 const optionalStudentIdSchema = z
   .union([
@@ -87,6 +94,44 @@ export const contentFormSchema = z
     }
   });
 
+export const MAX_CONTENT_FORM_ENEM_QUESTIONS = 50;
+
+export function enemQuestionsFromSelection(
+  selected: EnemQuestion[]
+): Array<{ year: number; index: number; language: string | null }> {
+  return selected.map((question) => ({
+    year: question.year,
+    index: question.index,
+    language: question.language,
+  }));
+}
+
+export function validateContentFormEnemSelection(
+  contentType: ContentFormValues["contentType"],
+  selected: EnemQuestion[]
+): string | null {
+  if (contentType !== "questions") return null;
+  if (selected.length < 1) {
+    return "Selecione ao menos uma questão ENEM.";
+  }
+  if (selected.length > MAX_CONTENT_FORM_ENEM_QUESTIONS) {
+    return `Selecione no máximo ${MAX_CONTENT_FORM_ENEM_QUESTIONS} questões.`;
+  }
+  const keys = new Set<string>();
+  for (const question of selected) {
+    const key = buildQuestionKey(
+      question.year,
+      question.index,
+      question.language
+    );
+    if (keys.has(key)) {
+      return "Remova questões duplicadas da seleção.";
+    }
+    keys.add(key);
+  }
+  return null;
+}
+
 const diagnosticQuestionSchema = z.object({
   prompt: z.string().min(3, "Enunciado é obrigatório"),
   options: z
@@ -113,7 +158,7 @@ export const diagnosticFormSchema = z.object({
   class_identifier: z.string().min(1, "Selecione a turma"),
   questions: z
     .array(diagnosticQuestionSchema)
-    .min(1, "Adicione pelo menos uma questão")
+    .min(1, "Adicione ao menos uma questão")
     .max(10, "Máximo de 10 questões"),
 });
 
