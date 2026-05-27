@@ -130,3 +130,6 @@ Após `npm run db:seed`, use as credenciais criadas no seed do Prisma (`prisma/s
 | Professor | Compartilhar atividade | `/teacher/compartilhar/[activityId]` |
 
 O progresso parcial de atividades é salvo em `localStorage` (rascunho) entre recarregamentos da página.
+
+## Detalhes sobre o desenvolvimento
+A equipe utilizou a ferramenta de Inteligência Artificial Cursor para auxiliar no processo de criação da aplicação.
