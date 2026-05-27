@@ -3,15 +3,16 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const CETI_SCHOOL_ID = "d3b07384-d113-4956-a5cc-9c6f2c3d526e";
-const EMEF_SCHOOL_ID = "e4c18495-e224-5067-b6dd-0d7f3e4d637f";
+const APRIGIO_SCHOOL_ID = "d3b07384-d113-4956-a5cc-9c6f2c3d526e";
+const SERAFIM_SCHOOL_ID = "e4c18495-e224-5067-b6dd-0d7f3e4d637f";
+const JOSE_ALVES_SCHOOL_ID = "c5d29506-f335-4178-a7ee-1e8f4f5e7480";
 const DEMO_STUDENT_ID = "4a7174e2-6cf0-449e-b98a-4933934375b4";
 const DEMO_TEACHER_ID = "8f3c2a1b-9d4e-4f5a-b6c7-8d9e0f1a2b3c";
 
 const grades = ["1", "2", "3"] as const;
 const sections = ["A", "B"] as const;
 
-const CLASS_IDS: Record<string, string> = {
+const APRIGIO_CLASS_IDS: Record<string, string> = {
   "1-A": "a1111111-1111-4111-8111-111111111101",
   "1-B": "a1111111-1111-4111-8111-111111111102",
   "2-A": "a1111111-1111-4111-8111-111111111201",
@@ -20,37 +21,38 @@ const CLASS_IDS: Record<string, string> = {
   "3-B": "a1111111-1111-4111-8111-111111111302",
 };
 
-async function main() {
+const SERAFIM_CLASS_IDS: Record<string, string> = {
+  "1-A": "b2222222-2222-4222-8222-222222222101",
+  "1-B": "b2222222-2222-4222-8222-222222222102",
+  "2-A": "b2222222-2222-4222-8222-222222222201",
+  "2-B": "b2222222-2222-4222-8222-222222222202",
+  "3-A": "b2222222-2222-4222-8222-222222222301",
+  "3-B": "b2222222-2222-4222-8222-222222222302",
+};
+
+const JOSE_ALVES_CLASS_IDS: Record<string, string> = {
+  "1-A": "c3333333-3333-4333-8333-333333333101",
+  "1-B": "c3333333-3333-4333-8333-333333333102",
+  "2-A": "c3333333-3333-4333-8333-333333333201",
+  "2-B": "c3333333-3333-4333-8333-333333333202",
+  "3-A": "c3333333-3333-4333-8333-333333333301",
+  "3-B": "c3333333-3333-4333-8333-333333333302",
+};
+
+async function seedSchoolWithClasses(
+  school: { id: string; name: string; city: string },
+  classIds: Record<string, string>
+) {
   await prisma.school.upsert({
-    where: { id: CETI_SCHOOL_ID },
-    update: {},
+    where: { id: school.id },
+    update: { name: school.name, city: school.city },
     create: {
-      id: CETI_SCHOOL_ID,
-      name: "CETI Luiz Ubiraci de Carvalho",
+      id: school.id,
+      name: school.name,
       gre: "16ª GRE",
-      city: "Vila Nova do Piauí, PI",
+      city: school.city,
     },
   });
-
-  await prisma.school.upsert({
-    where: { id: EMEF_SCHOOL_ID },
-    update: {},
-    create: {
-      id: EMEF_SCHOOL_ID,
-      name: "EMEF João Batista de Sousa",
-      gre: "16ª GRE",
-      city: "Vila Nova do Piauí, PI",
-    },
-  });
-
-  const EMEF_CLASS_IDS: Record<string, string> = {
-    "1-A": "b2222222-2222-4222-8222-222222222101",
-    "1-B": "b2222222-2222-4222-8222-222222222102",
-    "2-A": "b2222222-2222-4222-8222-222222222201",
-    "2-B": "b2222222-2222-4222-8222-222222222202",
-    "3-A": "b2222222-2222-4222-8222-222222222301",
-    "3-B": "b2222222-2222-4222-8222-222222222302",
-  };
 
   for (const grade of grades) {
     for (const section of sections) {
@@ -58,32 +60,15 @@ async function main() {
       await prisma.classGroup.upsert({
         where: {
           schoolId_grade_classIdentifier: {
-            schoolId: CETI_SCHOOL_ID,
+            schoolId: school.id,
             grade,
             classIdentifier: section,
           },
         },
         update: { label: `${grade}º ano — Turma ${section}` },
         create: {
-          id: CLASS_IDS[key],
-          schoolId: CETI_SCHOOL_ID,
-          grade,
-          classIdentifier: section,
-          label: `${grade}º ano — Turma ${section}`,
-        },
-      });
-      await prisma.classGroup.upsert({
-        where: {
-          schoolId_grade_classIdentifier: {
-            schoolId: EMEF_SCHOOL_ID,
-            grade,
-            classIdentifier: section,
-          },
-        },
-        update: { label: `${grade}º ano — Turma ${section}` },
-        create: {
-          id: EMEF_CLASS_IDS[key],
-          schoolId: EMEF_SCHOOL_ID,
+          id: classIds[key],
+          schoolId: school.id,
           grade,
           classIdentifier: section,
           label: `${grade}º ano — Turma ${section}`,
@@ -91,23 +76,52 @@ async function main() {
       });
     }
   }
+}
+
+async function main() {
+  await seedSchoolWithClasses(
+    {
+      id: APRIGIO_SCHOOL_ID,
+      name: "CETI Aprigio Pereira Bezerra",
+      city: "São Julião, PI",
+    },
+    APRIGIO_CLASS_IDS
+  );
+
+  await seedSchoolWithClasses(
+    {
+      id: SERAFIM_SCHOOL_ID,
+      name: "CETI Serafim José de Brito",
+      city: "Campo Grande do Piauí, PI",
+    },
+    SERAFIM_CLASS_IDS
+  );
+
+  await seedSchoolWithClasses(
+    {
+      id: JOSE_ALVES_SCHOOL_ID,
+      name: "CETI José Alves Bezerra",
+      city: "Monsenhor Hipólito, PI",
+    },
+    JOSE_ALVES_CLASS_IDS
+  );
 
   const demoPassword = await bcrypt.hash("senhaDemo123", 12);
 
   await prisma.user.upsert({
     where: { email: "thiago.demo@escola.pi.gov.br" },
-    update: {},
+    update: { city: "São Julião" },
     create: {
       id: DEMO_STUDENT_ID,
       email: "thiago.demo@escola.pi.gov.br",
       passwordHash: demoPassword,
       name: "Thiago Silva (demo)",
-      city: "Vila Nova do Piauí",
+      city: "São Julião",
       cargo: Cargo.estudante,
       studentProfile: {
         create: {
-          schoolId: CETI_SCHOOL_ID,
-          classId: CLASS_IDS["2-A"],
+          schoolId: APRIGIO_SCHOOL_ID,
+          classId: APRIGIO_CLASS_IDS["2-A"],
         },
       },
     },
@@ -115,45 +129,45 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: "regina.demo@escola.pi.gov.br" },
-    update: {},
+    update: { city: "São Julião" },
     create: {
       id: DEMO_TEACHER_ID,
       email: "regina.demo@escola.pi.gov.br",
       passwordHash: demoPassword,
       name: "Professora Regina (demo)",
-      city: "Vila Nova do Piauí",
+      city: "São Julião",
       cargo: Cargo.professor,
       teacherProfile: {
         create: {
           schools: {
-            create: [{ schoolId: CETI_SCHOOL_ID }],
+            create: [{ schoolId: APRIGIO_SCHOOL_ID }],
           },
           assignments: {
             create: [
-              { classId: CLASS_IDS["2-A"] },
-              { classId: CLASS_IDS["2-B"] },
+              { classId: APRIGIO_CLASS_IDS["2-A"] },
+              { classId: APRIGIO_CLASS_IDS["2-B"] },
             ],
           },
           classMaterias: {
             create: [
               {
-                classId: CLASS_IDS["2-A"],
-                schoolId: CETI_SCHOOL_ID,
+                classId: APRIGIO_CLASS_IDS["2-A"],
+                schoolId: APRIGIO_SCHOOL_ID,
                 materia: "Matemática",
               },
               {
-                classId: CLASS_IDS["2-A"],
-                schoolId: CETI_SCHOOL_ID,
+                classId: APRIGIO_CLASS_IDS["2-A"],
+                schoolId: APRIGIO_SCHOOL_ID,
                 materia: "Português",
               },
               {
-                classId: CLASS_IDS["2-B"],
-                schoolId: CETI_SCHOOL_ID,
+                classId: APRIGIO_CLASS_IDS["2-B"],
+                schoolId: APRIGIO_SCHOOL_ID,
                 materia: "Matemática",
               },
               {
-                classId: CLASS_IDS["2-B"],
-                schoolId: CETI_SCHOOL_ID,
+                classId: APRIGIO_CLASS_IDS["2-B"],
+                schoolId: APRIGIO_SCHOOL_ID,
                 materia: "Português",
               },
             ],
@@ -176,26 +190,26 @@ async function main() {
       data: [
         {
           teacherId: demoTeacher.id,
-          classId: CLASS_IDS["2-A"],
-          schoolId: CETI_SCHOOL_ID,
+          classId: APRIGIO_CLASS_IDS["2-A"],
+          schoolId: APRIGIO_SCHOOL_ID,
           materia: "Matemática",
         },
         {
           teacherId: demoTeacher.id,
-          classId: CLASS_IDS["2-A"],
-          schoolId: CETI_SCHOOL_ID,
+          classId: APRIGIO_CLASS_IDS["2-A"],
+          schoolId: APRIGIO_SCHOOL_ID,
           materia: "Português",
         },
         {
           teacherId: demoTeacher.id,
-          classId: CLASS_IDS["2-B"],
-          schoolId: CETI_SCHOOL_ID,
+          classId: APRIGIO_CLASS_IDS["2-B"],
+          schoolId: APRIGIO_SCHOOL_ID,
           materia: "Matemática",
         },
         {
           teacherId: demoTeacher.id,
-          classId: CLASS_IDS["2-B"],
-          schoolId: CETI_SCHOOL_ID,
+          classId: APRIGIO_CLASS_IDS["2-B"],
+          schoolId: APRIGIO_SCHOOL_ID,
           materia: "Português",
         },
       ],

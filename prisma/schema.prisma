@@ -16,6 +16,7 @@ enum MaterialContentType {
   text
   video_link
   file
+  questions
 }
 
 enum MaterialTargetType {
@@ -98,6 +99,7 @@ model StudentProfile {
   materialRecipients MaterialRecipient[]
   materialReads      MaterialRead[]
   enemAttempts       EnemQuestionAttempt[]
+  enemFavorites      EnemQuestionFavorite[]
   learningPaths      StudentLearningPath[]
 
   @@map("students")
@@ -122,6 +124,22 @@ model EnemQuestionAttempt {
   @@unique([studentId, questionKey])
   @@index([studentId, answeredAt])
   @@map("enem_question_attempts")
+}
+
+model EnemQuestionFavorite {
+  id          String   @id @default(uuid()) @db.Uuid
+  studentId   String   @map("student_id") @db.Uuid
+  questionKey String   @map("question_key")
+  year        Int
+  index       Int
+  language    String?  @map("language")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionKey])
+  @@index([studentId, createdAt])
+  @@map("enem_question_favorites")
 }
 
 model StudentLearningPath {
@@ -215,6 +233,7 @@ model TeacherClassMateria {
 model EducationalMaterial {
   id          String              @id @default(uuid()) @db.Uuid
   teacherId   String              @map("teacher_id") @db.Uuid
+  teacherName String              @map("teacher_name")
   schoolId    String              @map("school_id") @db.Uuid
   title       String
   description String
@@ -231,11 +250,28 @@ model EducationalMaterial {
   school     School              @relation(fields: [schoolId], references: [id])
   recipients MaterialRecipient[]
   attachments MaterialAttachment[]
+  enemQuestions MaterialEnemQuestion[]
   deliveryLogs MaterialDeliveryLog[]
   reads      MaterialRead[]
 
   @@index([teacherId, sentAt])
   @@map("educational_materials")
+}
+
+model MaterialEnemQuestion {
+  id          String   @id @default(uuid()) @db.Uuid
+  materialId  String   @map("material_id") @db.Uuid
+  questionKey String   @map("question_key")
+  year        Int
+  index       Int
+  language    String?  @map("language")
+  sortOrder   Int      @map("sort_order")
+
+  material EducationalMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([materialId, questionKey])
+  @@index([materialId, sortOrder])
+  @@map("material_enem_questions")
 }
 
 model MaterialRead {
