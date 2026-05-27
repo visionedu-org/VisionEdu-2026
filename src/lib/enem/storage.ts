@@ -1,4 +1,5 @@
 import { buildQuestionKey } from "@/lib/enem/question-key";
+import { computeEnemStatsFromAnswers } from "@/lib/enem/compute-stats";
 import type {
   EnemLocalProgress,
   EnemProgressStats,
@@ -7,7 +8,8 @@ import type {
 } from "@/types/enem";
 import type { EnemAlternativeLetter } from "@/types/enem";
 
-const STORAGE_KEY = "visionedu:enem-progress";
+const LEGACY_STORAGE_KEY = "visionedu:enem-progress";
+const MIGRATION_FLAG_KEY = "visionedu:enem-progress-migrated";
 
 const EMPTY_PROGRESS: EnemLocalProgress = {
   version: 1,
@@ -16,13 +18,16 @@ const EMPTY_PROGRESS: EnemLocalProgress = {
   review: [],
 };
 
-function readProgress(): EnemLocalProgress {
-  if (typeof window === "undefined") return { ...EMPTY_PROGRESS };
+let progressCache: EnemLocalProgress | null = null;
+let hydrated = false;
+
+function readLegacyProgress(): EnemLocalProgress | null {
+  if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...EMPTY_PROGRESS };
+    const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!raw) return null;
     const parsed = JSON.parse(raw) as EnemLocalProgress;
-    if (parsed.version !== 1) return { ...EMPTY_PROGRESS };
+    if (parsed.version !== 1) return null;
     return {
       version: 1,
       answers: parsed.answers ?? {},
@@ -30,21 +35,96 @@ function readProgress(): EnemLocalProgress {
       review: Array.isArray(parsed.review) ? parsed.review : [],
     };
   } catch {
-    return { ...EMPTY_PROGRESS };
+    return null;
   }
 }
 
-function writeProgress(data: EnemLocalProgress): void {
+function persistReviewOnly(review: string[]): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const legacy = readLegacyProgress();
+    const next = {
+      version: 1 as const,
+      answers: {},
+      favorites: [],
+      review,
+    };
+    window.localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(next));
+    if (legacy?.answers && Object.keys(legacy.answers).length > 0) {
+      /* answers/favorites removidos após migração; review permanece local */
+    }
   } catch {
     /* quota */
   }
 }
 
+export function isEnemProgressHydrated(): boolean {
+  return hydrated;
+}
+
+export function hydrateEnemProgress(data: EnemLocalProgress): void {
+  const legacy = readLegacyProgress();
+  progressCache = {
+    version: 1,
+    answers: data.answers,
+    favorites: data.favorites,
+    review: legacy?.review?.length ? legacy.review : data.review,
+  };
+  hydrated = true;
+  if (legacy?.review?.length) {
+    persistReviewOnly(legacy.review);
+  }
+}
+
+export function clearEnemProgressHydration(): void {
+  progressCache = null;
+  hydrated = false;
+}
+
+function getCache(): EnemLocalProgress {
+  if (progressCache) return progressCache;
+  const legacy = readLegacyProgress();
+  if (legacy) {
+    return {
+      version: 1,
+      answers: legacy.answers,
+      favorites: legacy.favorites,
+      review: legacy.review,
+    };
+  }
+  return { ...EMPTY_PROGRESS };
+}
+
+function writeCache(data: EnemLocalProgress): void {
+  progressCache = data;
+  if (data.review.length > 0) {
+    persistReviewOnly(data.review);
+  }
+}
+
 export function getEnemProgress(): EnemLocalProgress {
-  return readProgress();
+  return getCache();
+}
+
+export function hasLegacyEnemProgress(): boolean {
+  if (typeof window === "undefined") return false;
+  if (window.localStorage.getItem(MIGRATION_FLAG_KEY) === "1") return false;
+  const legacy = readLegacyProgress();
+  if (!legacy) return false;
+  return (
+    Object.keys(legacy.answers).length > 0 || legacy.favorites.length > 0
+  );
+}
+
+export function markEnemProgressMigrated(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(MIGRATION_FLAG_KEY, "1");
+    const review = getCache().review;
+    persistReviewOnly(review);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function recordEnemAnswer(
@@ -63,14 +143,32 @@ export function recordEnemAnswer(
     answeredAt: new Date().toISOString(),
   };
 
-  const progress = readProgress();
+  const progress = getCache();
   progress.answers[key] = record;
-  writeProgress(progress);
+  writeCache(progress);
   return record;
 }
 
+export function applyEnemAnswerRecord(record: EnemQuestionAnswerRecord): void {
+  const progress = getCache();
+  progress.answers[record.questionKey] = record;
+  writeCache(progress);
+}
+
+export function setEnemFavorite(questionKey: string, isFavorite: boolean): void {
+  const progress = getCache();
+  const set = new Set(progress.favorites);
+  if (isFavorite) {
+    set.add(questionKey);
+  } else {
+    set.delete(questionKey);
+  }
+  progress.favorites = [...set];
+  writeCache(progress);
+}
+
 export function toggleEnemFavorite(questionKey: string): boolean {
-  const progress = readProgress();
+  const progress = getCache();
   const set = new Set(progress.favorites);
   if (set.has(questionKey)) {
     set.delete(questionKey);
@@ -78,12 +176,12 @@ export function toggleEnemFavorite(questionKey: string): boolean {
     set.add(questionKey);
   }
   progress.favorites = [...set];
-  writeProgress(progress);
+  writeCache(progress);
   return set.has(questionKey);
 }
 
 export function toggleEnemReview(questionKey: string): boolean {
-  const progress = readProgress();
+  const progress = getCache();
   const set = new Set(progress.review);
   if (set.has(questionKey)) {
     set.delete(questionKey);
@@ -91,102 +189,36 @@ export function toggleEnemReview(questionKey: string): boolean {
     set.add(questionKey);
   }
   progress.review = [...set];
-  writeProgress(progress);
+  writeCache(progress);
   return set.has(questionKey);
 }
 
 export function isEnemFavorite(questionKey: string): boolean {
-  return readProgress().favorites.includes(questionKey);
+  return getCache().favorites.includes(questionKey);
 }
 
 export function isEnemReview(questionKey: string): boolean {
-  return readProgress().review.includes(questionKey);
+  return getCache().review.includes(questionKey);
 }
 
 export function getEnemAnswer(
   questionKey: string
 ): EnemQuestionAnswerRecord | undefined {
-  return readProgress().answers[questionKey];
+  return getCache().answers[questionKey];
 }
 
 export function computeEnemStats(): EnemProgressStats {
-  const { answers } = readProgress();
-  const records = Object.values(answers);
-  const totalAnswered = records.length;
-  const totalCorrect = records.filter((r) => r.isCorrect).length;
-  const totalIncorrect = totalAnswered - totalCorrect;
-  const accuracyPercent =
-    totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
-
-  const byDiscipline: EnemProgressStats["byDiscipline"] = {};
-  for (const record of records) {
-    const key = record.discipline ?? "geral";
-    if (!byDiscipline[key]) {
-      byDiscipline[key] = { answered: 0, correct: 0, accuracyPercent: 0 };
-    }
-    byDiscipline[key].answered += 1;
-    if (record.isCorrect) byDiscipline[key].correct += 1;
-  }
-  for (const stat of Object.values(byDiscipline)) {
-    stat.accuracyPercent =
-      stat.answered > 0
-        ? Math.round((stat.correct / stat.answered) * 100)
-        : 0;
-  }
-
-  const recentAnswers = [...records]
-    .sort(
-      (a, b) =>
-        new Date(b.answeredAt).getTime() - new Date(a.answeredAt).getTime()
-    )
-    .slice(0, 20);
-
-  const dailyMap = new Map<string, { correct: number; total: number }>();
-  const now = new Date();
-  for (let i = 13; i >= 0; i -= 1) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
-    dailyMap.set(key, { correct: 0, total: 0 });
-  }
-  for (const record of records) {
-    const day = record.answeredAt.slice(0, 10);
-    if (!dailyMap.has(day)) continue;
-    const entry = dailyMap.get(day)!;
-    entry.total += 1;
-    if (record.isCorrect) entry.correct += 1;
-  }
-
-  const dailyCorrect = [...dailyMap.entries()].map(([date, v]) => ({
-    date,
-    correct: v.correct,
-    total: v.total,
-  }));
-
-  return {
-    totalAnswered,
-    totalCorrect,
-    totalIncorrect,
-    accuracyPercent,
-    byDiscipline,
-    recentAnswers,
-    dailyCorrect,
-  };
+  const { answers } = getCache();
+  return computeEnemStatsFromAnswers(Object.values(answers));
 }
 
 export function subscribeEnemProgress(
-  listener: () => void
+  _listener: () => void
 ): () => void {
   if (typeof window === "undefined") return () => undefined;
-
-  const handler = (event: StorageEvent) => {
-    if (event.key === STORAGE_KEY) listener();
-  };
-  window.addEventListener("storage", handler);
-  return () => window.removeEventListener("storage", handler);
+  return () => undefined;
 }
 
-/** Notifica listeners na mesma aba após mutação. */
 export function notifyEnemProgressChange(): void {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent("visionedu:enem-progress"));
@@ -198,9 +230,5 @@ export function subscribeEnemProgressLocal(
   if (typeof window === "undefined") return () => undefined;
   const handler = () => listener();
   window.addEventListener("visionedu:enem-progress", handler);
-  const storageUnsub = subscribeEnemProgress(handler);
-  return () => {
-    window.removeEventListener("visionedu:enem-progress", handler);
-    storageUnsub();
-  };
+  return () => window.removeEventListener("visionedu:enem-progress", handler);
 }

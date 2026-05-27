@@ -5,6 +5,8 @@ import type {
 } from "@/types/enem-ai-resolution";
 import type {
   EnemExam,
+  EnemLocalProgress,
+  EnemProgressStats,
   EnemQuestion,
   EnemQuestionsQuery,
   EnemQuestionsResponse,
@@ -83,6 +85,27 @@ export const enemQuestionsService = {
   ): Promise<{ synced: number }> {
     return apiClient.post("/api/v1/students/enem/attempts/sync", {
       attempts,
+    });
+  },
+
+  getProgress(): Promise<{
+    progress: EnemLocalProgress;
+    stats: EnemProgressStats;
+  }> {
+    return apiClient.get("/api/v1/students/enem/progress");
+  },
+
+  toggleFavorite(body: {
+    year: number;
+    index: number;
+    language?: string | null;
+  }): Promise<{ questionKey: string; isFavorite: boolean }> {
+    return apiClient.post("/api/v1/students/enem/favorites", body);
+  },
+
+  syncFavorites(questionKeys: string[]): Promise<{ synced: number }> {
+    return apiClient.post("/api/v1/students/enem/favorites/sync", {
+      questionKeys,
     });
   },
 };
