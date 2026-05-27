@@ -23,6 +23,11 @@ const PILOT_MATERIAS_BY_SCHOOL_GRADE: Record<
     "2": ["Português", "Matemática", "História", "Geografia"],
     "3": ["Português", "Matemática", "História", "Geografia"],
   },
+  "d6f40628-f557-4390-b9ff-3f0f6f7f9602": {
+    "1": ["Português", "Matemática"],
+    "2": ["Português", "Matemática", "História", "Geografia"],
+    "3": ["Português", "Matemática", "História", "Geografia"],
+  },
 };
 
 export function getAvailableMaterias(
