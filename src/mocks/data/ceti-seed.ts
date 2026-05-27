@@ -7,6 +7,8 @@ export const APRIGIO_SCHOOL_ID = "d3b07384-d113-4956-a5cc-9c6f2c3d526e";
 export const SERAFIM_SCHOOL_ID = "e4c18495-e224-5067-b6dd-0d7f3e4d637f";
 /** CETI José Alves Bezerra — Monsenhor Hipólito */
 export const JOSE_ALVES_SCHOOL_ID = "c5d29506-f335-4178-a7ee-1e8f4f5e7480";
+/** CETI Luiz Ubiraci de Carvalho — Vila Nova do Piauí */
+export const UBIRACI_SCHOOL_ID = "d6f40628-f557-4390-b9ff-3f0f6f7f9602";
 
 /** @deprecated Use APRIGIO_SCHOOL_ID */
 export const CETI_SCHOOL_ID = APRIGIO_SCHOOL_ID;
@@ -15,6 +17,7 @@ const SCHOOL_ACTIVITY_CITY: Record<string, ActivityCity> = {
   [APRIGIO_SCHOOL_ID]: "São Julião",
   [SERAFIM_SCHOOL_ID]: "Campo Grande do Piauí",
   [JOSE_ALVES_SCHOOL_ID]: "Monsenhor Hipólito",
+  [UBIRACI_SCHOOL_ID]: "Vila Nova do Piauí",
 };
 
 export const aprigioSchool: School = {
@@ -38,6 +41,13 @@ export const joseAlvesSchool: School = {
   city: "Monsenhor Hipólito, PI",
 };
 
+export const ubiraciSchool: School = {
+  id: UBIRACI_SCHOOL_ID,
+  name: "CETI Luiz Ubiraci de Carvalho",
+  gre: "16ª GRE",
+  city: "Vila Nova do Piauí, PI",
+};
+
 /** @deprecated Use aprigioSchool */
 export const cetiSchool = aprigioSchool;
 
@@ -45,6 +55,7 @@ export const pilotSchools: School[] = [
   aprigioSchool,
   serafimSchool,
   joseAlvesSchool,
+  ubiraciSchool,
 ];
 
 export function getActivityCityForSchool(schoolId: string): ActivityCity | undefined {
@@ -81,6 +92,15 @@ const JOSE_ALVES_CLASS_IDS: Record<string, string> = {
   "3-B": "c3333333-3333-4333-8333-333333333302",
 };
 
+const UBIRACI_CLASS_IDS: Record<string, string> = {
+  "1-A": "d4444444-4444-4444-8444-444444444101",
+  "1-B": "d4444444-4444-4444-8444-444444444102",
+  "2-A": "d4444444-4444-4444-8444-444444444201",
+  "2-B": "d4444444-4444-4444-8444-444444444202",
+  "3-A": "d4444444-4444-4444-8444-444444444301",
+  "3-B": "d4444444-4444-4444-8444-444444444302",
+};
+
 function buildClassesForSchool(
   schoolId: string,
   classIds: Record<string, string>
@@ -114,6 +134,11 @@ export const joseAlvesClasses: ClassGroup[] = buildClassesForSchool(
   JOSE_ALVES_CLASS_IDS
 );
 
+export const ubiraciClasses: ClassGroup[] = buildClassesForSchool(
+  UBIRACI_SCHOOL_ID,
+  UBIRACI_CLASS_IDS
+);
+
 /** @deprecated Use aprigioClasses */
 export const cetiClasses = aprigioClasses;
 
@@ -121,6 +146,7 @@ export const pilotClasses: ClassGroup[] = [
   ...aprigioClasses,
   ...serafimClasses,
   ...joseAlvesClasses,
+  ...ubiraciClasses,
 ];
 
 export const DEMO_STUDENT_EMAIL = "thiago.demo@escola.pi.gov.br";
