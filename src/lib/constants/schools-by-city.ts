@@ -4,6 +4,7 @@ import {
   JOSE_ALVES_SCHOOL_ID,
   pilotSchools,
   SERAFIM_SCHOOL_ID,
+  UBIRACI_SCHOOL_ID,
 } from "@/mocks/data/ceti-seed";
 import type { School } from "@/types/domain";
 
@@ -15,6 +16,7 @@ export const SCHOOL_IDS_BY_ACTIVITY_CITY: Record<
   "São Julião": [APRIGIO_SCHOOL_ID],
   "Campo Grande do Piauí": [SERAFIM_SCHOOL_ID],
   "Monsenhor Hipólito": [JOSE_ALVES_SCHOOL_ID],
+  "Vila Nova do Piauí": [UBIRACI_SCHOOL_ID],
 };
 
 export function getSchoolsForActivityCity(city: ActivityCity): School[] {
