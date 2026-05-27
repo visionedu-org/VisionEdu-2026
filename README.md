@@ -110,8 +110,8 @@ Após `npm run db:seed`, use as credenciais criadas no seed do Prisma (`prisma/s
 
 | Perfil | E-mail | Senha |
 |--------|--------|-------|
-| Aluno | `thiago.demo@escola.pi.gov.br` | `senhaDemo123` |
-| Professor | `regina.demo@escola.pi.gov.br` | `senhaDemo123` |
+| Aluno | `aluno.demo@gmail.com` | `senhaDemo123` |
+| Professor | `professor.demo@gmail.com` | `senhaDemo123` |
 
 **Fluxo sugerido:** Home → Sou aluno/professor → Login → dashboard.
 
