@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ENEM_QUESTION_IMAGE_CLASSNAME } from "@/lib/enem/constants";
 import { formatEnemMarkdown } from "@/lib/enem/markdown";
 
 interface EnemQuestionContextProps {
@@ -18,7 +19,7 @@ export function EnemQuestionContext({
     <div className="space-y-4">
       {html && (
         <div
-          className="prose prose-sm max-w-none text-foreground dark:prose-invert"
+          className="prose prose-sm max-w-none text-foreground dark:prose-invert [&_img]:mx-auto [&_img]:h-auto [&_img]:max-h-44 [&_img]:w-auto [&_img]:max-w-full [&_img]:object-contain sm:[&_img]:max-h-52 md:[&_img]:max-h-60"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       )}
@@ -28,15 +29,15 @@ export function EnemQuestionContext({
           {files.map((src) => (
             <figure
               key={src}
-              className="overflow-hidden rounded-lg border border-border bg-muted/20"
+              className="flex justify-center overflow-hidden rounded-lg border border-border bg-muted/20 p-2"
             >
               <Image
                 src={src}
                 alt="Ilustração da questão"
-                width={800}
-                height={500}
-                className="h-auto w-full object-contain"
-                sizes="(max-width: 512px) 100vw, 512px"
+                width={640}
+                height={400}
+                className={ENEM_QUESTION_IMAGE_CLASSNAME}
+                sizes="(max-width: 640px) 90vw, 640px"
                 unoptimized
               />
             </figure>

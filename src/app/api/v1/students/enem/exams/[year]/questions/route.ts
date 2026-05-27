@@ -1,7 +1,10 @@
 import { MAX_QUESTIONS_PAGE_SIZE } from "@/lib/enem/constants";
 import { enrichQuestion } from "@/lib/enem/question-metadata";
 import { jsonError } from "@/server/auth/api-error";
-import { AuthRequiredError, requireStudent } from "@/server/auth/require-auth";
+import {
+  AuthRequiredError,
+  requireStudentOrTeacher,
+} from "@/server/auth/require-auth";
 import { EnemApiError, fetchEnemApi } from "@/server/enem/fetch-enem";
 import type { EnemQuestionsResponse } from "@/types/enem";
 
@@ -21,7 +24,7 @@ export async function GET(
   context: { params: Promise<{ year: string }> }
 ) {
   try {
-    await requireStudent(request);
+    await requireStudentOrTeacher(request);
     const { year: yearParam } = await context.params;
     const year = parseYearParam(yearParam);
     if (!year) {

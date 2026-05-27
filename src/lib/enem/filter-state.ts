@@ -1,3 +1,4 @@
+import { ENEM_MIN_FILTERED_RESULTS } from "@/lib/enem/constants";
 import type { EnemExam, EnemQuestionFilters } from "@/types/enem";
 
 function clearOptional<T extends string>(value: T | "" | undefined): T | undefined {
@@ -45,6 +46,45 @@ export function hasActiveClientFilters(filters: EnemQuestionFilters): boolean {
         filters.answered !== "all" &&
         filters.answered !== "favorites")
   );
+}
+
+/** Disciplina usa offset por faixa de índice; não precisa varrer a prova inteira. */
+export function usesDisciplineIndexHint(
+  filters: EnemQuestionFilters
+): boolean {
+  return Boolean(filters.discipline);
+}
+
+export function shouldAutoLoadMoreQuestions(
+  filters: EnemQuestionFilters,
+  options: {
+    filteredCount: number;
+    hasMoreFromApi: boolean;
+    autoPagesLoaded: number;
+    maxAutoPages: number;
+    loading: boolean;
+    loadingMore: boolean;
+    rateLimited: boolean;
+    favoritesMode: boolean;
+  }
+): boolean {
+  if (options.favoritesMode || options.rateLimited || options.loading || options.loadingMore) {
+    return false;
+  }
+  if (!hasActiveClientFilters(filters) || !options.hasMoreFromApi) {
+    return false;
+  }
+  if (options.autoPagesLoaded >= options.maxAutoPages) {
+    return false;
+  }
+  if (options.filteredCount >= ENEM_MIN_FILTERED_RESULTS) {
+    return false;
+  }
+  // Com disciplina, a primeira página já começa na faixa correta da prova.
+  if (usesDisciplineIndexHint(filters)) {
+    return false;
+  }
+  return true;
 }
 
 export function isFavoritesOnlyMode(filters: EnemQuestionFilters): boolean {

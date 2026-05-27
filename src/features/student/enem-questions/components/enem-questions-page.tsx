@@ -77,7 +77,7 @@ export function EnemQuestionsPage() {
     retry: retryFavorites,
   } = useEnemFavorites({ shuffle: favoritesShuffle });
 
-  const { stats } = useEnemProgress();
+  const { stats, loading: progressLoading } = useEnemProgress();
 
   useEffect(() => {
     if (activeTab === "favorites") {
@@ -199,7 +199,11 @@ export function EnemQuestionsPage() {
       </div>
 
       {activeTab === "stats" ? (
-        <EnemStatsPanel stats={stats} />
+        progressLoading ? (
+          <EnemQuestionsLoading />
+        ) : (
+          <EnemStatsPanel stats={stats} />
+        )
       ) : activeTab === "favorites" ? (
         <div className="space-y-4 lg:grid lg:grid-cols-[minmax(280px,340px)_1fr] lg:items-start lg:gap-6">
           {examsLoading ? (
@@ -249,8 +253,8 @@ export function EnemQuestionsPage() {
             favoriteCount > 0 &&
             favoriteQuestions.length === 0 && (
               <EnemEmptyState
-                title="Nenhuma favorita nestes filtros"
-                description="Ajuste matéria ou dificuldade e clique em Aplicar Filtros."
+                title="Nenhuma questão favorita nestes filtros"
+                description="Ajuste matéria ou dificuldade e clique em Aplicar filtros."
               />
             )}
 

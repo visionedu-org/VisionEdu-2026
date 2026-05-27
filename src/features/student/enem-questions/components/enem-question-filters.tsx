@@ -187,7 +187,7 @@ export function EnemQuestionFiltersPanel({
             Carregando questões...
           </>
         ) : (
-          "Aplicar Filtros"
+          "Aplicar filtros"
         )}
       </Button>
     </section>

@@ -28,7 +28,7 @@ export function EnemQuestionList({
         <h2 className="text-base font-semibold">Buscar questões</h2>
         <p className="max-w-sm text-sm text-muted-foreground">
           Ajuste os filtros acima e clique em{" "}
-          <strong className="font-medium text-foreground">Aplicar Filtros</strong>{" "}
+          <strong className="font-medium text-foreground">Aplicar filtros</strong>{" "}
           para carregar as questões do ENEM.
         </p>
       </div>
@@ -69,7 +69,7 @@ export function EnemQuestionList({
           disabled={loadingMore}
           onClick={onLoadMore}
         >
-          {loadingMore ? "Carregando..." : "Carregar mais questões"}
+          {loadingMore ? "Carregando…" : "Carregar mais questões"}
         </Button>
       )}
     </div>

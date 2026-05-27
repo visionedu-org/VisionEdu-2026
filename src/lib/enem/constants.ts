@@ -6,6 +6,10 @@ import type {
 
 export const ENEM_API_INSTITUTION = "enem" as const;
 
+/** Limita imagens de enunciado/alternativas sem estourar o layout (mobile-first). */
+export const ENEM_QUESTION_IMAGE_CLASSNAME =
+  "mx-auto h-auto max-h-44 w-auto max-w-full object-contain sm:max-h-52 md:max-h-60";
+
 export const ENEM_DISCIPLINE_LABELS: Record<EnemDiscipline, string> = {
   "ciencias-humanas": "Ciências Humanas",
   "ciencias-natureza": "Ciências da Natureza",

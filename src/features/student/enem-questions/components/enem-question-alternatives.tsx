@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ENEM_QUESTION_IMAGE_CLASSNAME } from "@/lib/enem/constants";
 import type { EnemAlternative, EnemAlternativeLetter } from "@/types/enem";
 import { cn } from "@/lib/utils";
 
@@ -56,15 +57,17 @@ export function EnemQuestionAlternatives({
               )}
             </div>
             {alt.file && (
-              <Image
-                src={alt.file}
-                alt={`Ilustração da alternativa ${alt.letter}`}
-                width={600}
-                height={320}
-                className="ml-7 h-auto max-h-48 w-auto rounded-md object-contain"
-                sizes="(max-width: 512px) 90vw, 400px"
-                unoptimized
-              />
+              <div className="ml-7 flex justify-start">
+                <Image
+                  src={alt.file}
+                  alt={`Ilustração da alternativa ${alt.letter}`}
+                  width={640}
+                  height={400}
+                  className={cn(ENEM_QUESTION_IMAGE_CLASSNAME, "rounded-md")}
+                  sizes="(max-width: 640px) 90vw, 640px"
+                  unoptimized
+                />
+              </div>
             )}
           </label>
         );

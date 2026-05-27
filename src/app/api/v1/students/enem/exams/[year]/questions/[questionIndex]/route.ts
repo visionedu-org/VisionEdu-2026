@@ -1,6 +1,9 @@
 import { enrichQuestion } from "@/lib/enem/question-metadata";
 import { jsonError } from "@/server/auth/api-error";
-import { AuthRequiredError, requireStudent } from "@/server/auth/require-auth";
+import {
+  AuthRequiredError,
+  requireStudentOrTeacher,
+} from "@/server/auth/require-auth";
 import { EnemApiError, fetchEnemApi } from "@/server/enem/fetch-enem";
 import type { EnemQuestion } from "@/types/enem";
 
@@ -10,7 +13,7 @@ function parseYearParam(raw: string): number | null {
   return year;
 }
 
-function parseIndexParam(raw: string): number | null {
+function parseQuestionIndexParam(raw: string): number | null {
   const index = Number.parseInt(raw, 10);
   if (!Number.isFinite(index) || index < 1) return null;
   return index;
@@ -18,13 +21,14 @@ function parseIndexParam(raw: string): number | null {
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ year: string; index: string }> }
+  context: { params: Promise<{ year: string; questionIndex: string }> }
 ) {
   try {
-    await requireStudent(request);
-    const { year: yearParam, index: indexParam } = await context.params;
+    await requireStudentOrTeacher(request);
+    const { year: yearParam, questionIndex: questionIndexParam } =
+      await context.params;
     const year = parseYearParam(yearParam);
-    const index = parseIndexParam(indexParam);
+    const index = parseQuestionIndexParam(questionIndexParam);
 
     if (!year || !index) {
       return jsonError(400, "bad_request", "Parâmetros inválidos.");
@@ -46,15 +50,17 @@ export async function GET(
       return jsonError(err.status, err.code, err.message);
     }
     if (err instanceof EnemApiError) {
-      const code =
-        err.status === 429 ? "rate_limit" : "enem_api_error";
+      const code = err.status === 429 ? "rate_limit" : "enem_api_error";
       return jsonError(
         err.status === 404 ? 404 : err.status,
         code,
         err.message
       );
     }
-    console.error("[students/enem/exams/year/questions/index GET]", err);
+    console.error(
+      "[students/enem/exams/year/questions/questionIndex GET]",
+      err
+    );
     return jsonError(
       500,
       "internal_error",

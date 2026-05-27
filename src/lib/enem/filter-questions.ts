@@ -1,4 +1,5 @@
 import { KNOWLEDGE_AREA_DISCIPLINES } from "@/lib/enem/constants";
+import { questionMatchesDisciplineFilter } from "@/lib/enem/discipline-index-ranges";
 import { questionKeyFromQuestion } from "@/lib/enem/question-key";
 import { getEnemProgress } from "@/lib/enem/storage";
 import type { EnemQuestion, EnemQuestionFilters } from "@/types/enem";
@@ -28,7 +29,10 @@ export function applyClientQuestionFilters(
   const reviewKeys = progress ? new Set(progress.review) : new Set<string>();
 
   return questions.filter((question) => {
-    if (filters.discipline && question.discipline !== filters.discipline) {
+    if (
+      filters.discipline &&
+      !questionMatchesDisciplineFilter(question, filters.discipline)
+    ) {
       return false;
     }
 

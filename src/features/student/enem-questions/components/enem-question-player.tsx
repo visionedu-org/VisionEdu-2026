@@ -43,11 +43,15 @@ export function EnemQuestionPlayer({
 
   if (!question) {
     return (
-      <div className="p-4">
-        <p className="text-sm text-muted-foreground">Nenhuma questão disponível.</p>
-        <Button type="button" className="mt-4 min-h-11" onClick={onClose}>
-          Voltar
-        </Button>
+      <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-slate-50 px-4 py-4 dark:bg-slate-950 md:px-6 md:py-6 lg:px-8">
+        <div className="mx-auto w-full max-w-4xl">
+          <p className="text-sm text-muted-foreground">
+            Nenhuma questão disponível.
+          </p>
+          <Button type="button" className="mt-4 min-h-11" onClick={onClose}>
+            Voltar
+          </Button>
+        </div>
       </div>
     );
   }
@@ -59,15 +63,17 @@ export function EnemQuestionPlayer({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
-      <EnemQuestionPlayerBody
-        key={questionKey}
-        question={question}
-        currentIndex={safeIndex}
-        total={total}
-        onClose={onClose}
-        onNavigate={setCurrentIndex}
-      />
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-slate-50 px-4 py-4 dark:bg-slate-950 md:px-6 md:py-6 lg:px-8">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden">
+        <EnemQuestionPlayerBody
+          key={questionKey}
+          question={question}
+          currentIndex={safeIndex}
+          total={total}
+          onClose={onClose}
+          onNavigate={setCurrentIndex}
+        />
+      </div>
     </div>
   );
 }

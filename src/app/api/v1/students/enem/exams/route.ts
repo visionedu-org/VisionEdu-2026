@@ -1,11 +1,14 @@
 import { jsonError } from "@/server/auth/api-error";
-import { AuthRequiredError, requireStudent } from "@/server/auth/require-auth";
+import {
+  AuthRequiredError,
+  requireStudentOrTeacher,
+} from "@/server/auth/require-auth";
 import { EnemApiError, fetchEnemApi } from "@/server/enem/fetch-enem";
 import type { EnemExam } from "@/types/enem";
 
 export async function GET(request: Request) {
   try {
-    await requireStudent(request);
+    await requireStudentOrTeacher(request);
     const exams = await fetchEnemApi<EnemExam[]>("/exams", {
       revalidate: 86_400,
     });

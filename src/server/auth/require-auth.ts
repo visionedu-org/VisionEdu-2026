@@ -95,3 +95,18 @@ export async function requireStudent(request: Request): Promise<AuthenticatedReq
   }
   return auth;
 }
+
+/** Leitura de provas/questões ENEM (professor ou estudante autenticado). */
+export async function requireStudentOrTeacher(
+  request: Request
+): Promise<AuthenticatedRequest> {
+  const auth = await requireAuth(request);
+  if (auth.role !== "student" && auth.role !== "teacher") {
+    throw new AuthRequiredError(
+      403,
+      "forbidden",
+      "Acesso permitido apenas para estudantes ou professores"
+    );
+  }
+  return auth;
+}

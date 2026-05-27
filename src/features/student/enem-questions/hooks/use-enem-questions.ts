@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { subscribeEnemProgressLocal, getEnemProgress } from "@/lib/enem/storage";
 import { applyClientQuestionFilters } from "@/lib/enem/filter-questions";
+import { listOffsetForDiscipline } from "@/lib/enem/discipline-index-ranges";
 import {
   hasActiveClientFilters,
   isAllYearsMode,
   isFavoritesOnlyMode,
+  shouldAutoLoadMoreQuestions,
 } from "@/lib/enem/filter-state";
 import {
   collectQuestionsBatch,
@@ -19,7 +21,6 @@ import {
   DEFAULT_QUESTIONS_PAGE_SIZE,
   ENEM_AUTO_LOAD_DELAY_MS,
   ENEM_MAX_AUTO_PAGES,
-  ENEM_MIN_FILTERED_RESULTS,
 } from "@/lib/enem/constants";
 import {
   fetchEnemQuestionsList,
@@ -269,8 +270,13 @@ export function useEnemQuestions({
       }
 
       setAppliedFilters(filters);
-      offsetRef.current = 0;
-      allYearsBatchRef.current = createCollectQuestionsBatchState(examYears);
+      offsetRef.current = filters.discipline
+        ? listOffsetForDiscipline(filters.discipline)
+        : 0;
+      allYearsBatchRef.current = createCollectQuestionsBatchState(
+        examYears,
+        filters.discipline || undefined
+      );
       setAutoPagesLoaded(0);
       setRawQuestions([]);
       setMetadata(null);
@@ -287,7 +293,7 @@ export function useEnemQuestions({
         return;
       }
 
-      await fetchPage(0, false, filters);
+      await fetchPage(offsetRef.current, false, filters);
     },
     [
       appliedFilters,
@@ -327,14 +333,16 @@ export function useEnemQuestions({
   const shouldAutoLoadMore =
     hasApplied &&
     appliedFilters &&
-    !favoritesMode &&
-    !rateLimited &&
-    hasActiveClientFilters(appliedFilters) &&
-    filteredQuestions.length < ENEM_MIN_FILTERED_RESULTS &&
-    hasMoreFromApi &&
-    autoPagesLoaded < ENEM_MAX_AUTO_PAGES &&
-    !loading &&
-    !loadingMore;
+    shouldAutoLoadMoreQuestions(appliedFilters, {
+      filteredCount: filteredQuestions.length,
+      hasMoreFromApi,
+      autoPagesLoaded,
+      maxAutoPages: ENEM_MAX_AUTO_PAGES,
+      loading,
+      loadingMore,
+      rateLimited,
+      favoritesMode,
+    });
 
   useEffect(() => {
     if (!shouldAutoLoadMore || !appliedFilters) return;
@@ -397,8 +405,13 @@ export function useEnemQuestions({
   const retry = useCallback(() => {
     if (!appliedFilters) return;
     setRateLimited(false);
-    offsetRef.current = 0;
-    allYearsBatchRef.current = createCollectQuestionsBatchState(examYears);
+    offsetRef.current = appliedFilters.discipline
+      ? listOffsetForDiscipline(appliedFilters.discipline)
+      : 0;
+    allYearsBatchRef.current = createCollectQuestionsBatchState(
+      examYears,
+      appliedFilters.discipline || undefined
+    );
     setAutoPagesLoaded(0);
     setShuffleSeed(Date.now());
     if (isFavoritesOnlyMode(appliedFilters)) {
@@ -409,7 +422,7 @@ export function useEnemQuestions({
       void fetchAllYearsPage(examYears, false, appliedFilters);
       return;
     }
-    void fetchPage(0, false, appliedFilters);
+    void fetchPage(offsetRef.current, false, appliedFilters);
   }, [appliedFilters, examYears, fetchAllYearsPage, fetchFavorites, fetchPage]);
 
   const reshuffle = useCallback(() => {

@@ -3,8 +3,9 @@ import {
   ENEM_MAX_REQUESTS_PER_BATCH,
   MAX_QUESTIONS_PAGE_SIZE,
 } from "@/lib/enem/constants";
+import { listOffsetForDiscipline } from "@/lib/enem/discipline-index-ranges";
 import { fetchEnemQuestionsList } from "@/lib/enem/enem-question-api";
-import type { EnemQuestion, EnemQuestionFilters } from "@/types/enem";
+import type { EnemDiscipline, EnemQuestion, EnemQuestionFilters } from "@/types/enem";
 
 function questionDedupKey(question: EnemQuestion): string {
   return `${question.year}:${question.index}:${question.language ?? "default"}`;
@@ -19,14 +20,20 @@ export interface CollectQuestionsBatchState {
 }
 
 export function createCollectQuestionsBatchState(
-  years: number[]
+  years: number[],
+  discipline?: EnemDiscipline
 ): CollectQuestionsBatchState {
   const hasMoreByYear: Record<number, boolean> = {};
+  const offsets: Record<number, number> = {};
+  const initialOffset = discipline ? listOffsetForDiscipline(discipline) : 0;
+
   for (const year of years) {
     hasMoreByYear[year] = true;
+    offsets[year] = initialOffset;
   }
+
   return {
-    offsets: {},
+    offsets,
     hasMoreByYear,
     seenKeys: new Set(),
     yearCursor: 0,

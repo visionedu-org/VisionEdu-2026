@@ -1,4 +1,5 @@
 import { DISCIPLINE_TO_KNOWLEDGE_AREA } from "@/lib/enem/constants";
+import { inferDisciplineFromIndex } from "@/lib/enem/discipline-index-ranges";
 import type {
   EnemAlternativeLetter,
   EnemDifficulty,
@@ -87,7 +88,7 @@ interface RawEnemQuestion {
 export function enrichQuestion(raw: RawEnemQuestion): EnemQuestion {
   const discipline = isEnemDiscipline(raw.discipline)
     ? raw.discipline
-    : null;
+    : inferDisciplineFromIndex(raw.index);
 
   return {
     title: raw.title ?? `Questão ${raw.index}`,
