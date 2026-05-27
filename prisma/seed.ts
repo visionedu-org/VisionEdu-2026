@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 const APRIGIO_SCHOOL_ID = "d3b07384-d113-4956-a5cc-9c6f2c3d526e";
 const SERAFIM_SCHOOL_ID = "e4c18495-e224-5067-b6dd-0d7f3e4d637f";
 const JOSE_ALVES_SCHOOL_ID = "c5d29506-f335-4178-a7ee-1e8f4f5e7480";
+const UBIRACI_SCHOOL_ID = "d6f40628-f557-4390-b9ff-3f0f6f7f9602";
 const DEMO_STUDENT_ID = "4a7174e2-6cf0-449e-b98a-4933934375b4";
 const DEMO_TEACHER_ID = "8f3c2a1b-9d4e-4f5a-b6c7-8d9e0f1a2b3c";
 
@@ -37,6 +38,15 @@ const JOSE_ALVES_CLASS_IDS: Record<string, string> = {
   "2-B": "c3333333-3333-4333-8333-333333333202",
   "3-A": "c3333333-3333-4333-8333-333333333301",
   "3-B": "c3333333-3333-4333-8333-333333333302",
+};
+
+const UBIRACI_CLASS_IDS: Record<string, string> = {
+  "1-A": "d4444444-4444-4444-8444-444444444101",
+  "1-B": "d4444444-4444-4444-8444-444444444102",
+  "2-A": "d4444444-4444-4444-8444-444444444201",
+  "2-B": "d4444444-4444-4444-8444-444444444202",
+  "3-A": "d4444444-4444-4444-8444-444444444301",
+  "3-B": "d4444444-4444-4444-8444-444444444302",
 };
 
 async function seedSchoolWithClasses(
@@ -104,6 +114,15 @@ async function main() {
       city: "Monsenhor Hipólito, PI",
     },
     JOSE_ALVES_CLASS_IDS
+  );
+
+  await seedSchoolWithClasses(
+    {
+      id: UBIRACI_SCHOOL_ID,
+      name: "CETI Luiz Ubiraci de Carvalho",
+      city: "Vila Nova do Piauí, PI",
+    },
+    UBIRACI_CLASS_IDS
   );
 
   const demoPassword = await bcrypt.hash("senhaDemo123", 12);
