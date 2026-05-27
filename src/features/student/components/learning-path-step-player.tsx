@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, ChevronRight, Sparkles } from "lucide-react";
+import { findNextLearningPathStepId } from "@/lib/learning-path/find-next-step";
 import {
   ENEM_DIFFICULTY_LABELS,
   ENEM_DISCIPLINE_LABELS,
@@ -34,10 +35,32 @@ export function LearningPathStepPlayer({ initial }: LearningPathStepPlayerProps)
   const [answerRecord, setAnswerRecord] =
     useState<EnemQuestionAnswerRecord | null>(null);
   const [aiResolutionOpen, setAiResolutionOpen] = useState(false);
+  const [nextStepId, setNextStepId] = useState<string | null>(null);
 
   const { step, question } = stepData;
   const isCompleted = step.status === "completed";
   const showAiResolution = Boolean(answerRecord && !answerRecord.isCorrect);
+  const canGoToNextStep =
+    (isCompleted || Boolean(revealed && answerRecord?.isCorrect)) && Boolean(nextStepId);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadNextStep() {
+      try {
+        const path = await studentService.getLearningPath();
+        if (cancelled) return;
+        setNextStepId(findNextLearningPathStepId(step.id, path.modules));
+      } catch {
+        if (!cancelled) setNextStepId(null);
+      }
+    }
+
+    void loadNextStep();
+    return () => {
+      cancelled = true;
+    };
+  }, [step.id]);
 
   async function handleConfirm() {
     if (!selected || revealed || isCompleted || submitting) return;
@@ -65,6 +88,8 @@ export function LearningPathStepPlayer({ initial }: LearningPathStepPlayerProps)
         answeredAt: new Date().toISOString(),
       });
 
+      setNextStepId(findNextLearningPathStepId(step.id, outcome.modules));
+
       if (outcome.isCorrect) {
         setFeedback(
           outcome.nextStepUnlocked
@@ -85,6 +110,11 @@ export function LearningPathStepPlayer({ initial }: LearningPathStepPlayerProps)
 
   function handleBack() {
     router.push("/student/dashboard");
+  }
+
+  function handleNextStep() {
+    if (!nextStepId) return;
+    router.push(`/student/trilha/etapa/${nextStepId}`);
   }
 
   return (
@@ -198,6 +228,17 @@ export function LearningPathStepPlayer({ initial }: LearningPathStepPlayerProps)
           >
             <Sparkles className="size-4" aria-hidden />
             Explicar com IA
+          </Button>
+        )}
+
+        {canGoToNextStep && (
+          <Button
+            type="button"
+            className="min-h-11 flex-1"
+            onClick={handleNextStep}
+          >
+            Próximo passo
+            <ChevronRight className="size-4" aria-hidden />
           </Button>
         )}
 
