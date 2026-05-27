@@ -156,7 +156,7 @@ export function ActivityPlayer({ activityId }: ActivityPlayerProps) {
           Atividade enviada!
         </h1>
         <p className="text-muted-foreground">
-          Sua nota mock: <strong>{submitScore?.toFixed(1)}</strong> / 10
+          Nota simulada: <strong>{submitScore?.toFixed(1)}</strong> / 10
         </p>
         <Link href="/student/dashboard">
           <Button className="min-h-11 w-full">Voltar ao painel</Button>

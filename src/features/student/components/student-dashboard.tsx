@@ -10,11 +10,9 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { ApiError } from "@/lib/api-client";
-import { getEnemProgress } from "@/lib/enem/storage";
+import { migrateLegacyEnemProgressToServer } from "@/lib/enem/migrate-local-progress";
 import { studentService } from "@/services/student.service";
-import { enemQuestionsService } from "@/services/enem-questions.service";
 import type {
-  LearningPathModule,
   StudentDashboardData,
   StudentLearningPathResponse,
 } from "@/types/domain";
@@ -87,11 +85,7 @@ export function StudentDashboard() {
   const modules = learningPath?.modules ?? [];
 
   useEffect(() => {
-    const progress = getEnemProgress();
-    const attempts = Object.values(progress.answers);
-    if (attempts.length > 0) {
-      void enemQuestionsService.syncAttempts(attempts).catch(() => undefined);
-    }
+    void migrateLegacyEnemProgressToServer();
   }, []);
 
   useEffect(() => {
@@ -231,7 +225,7 @@ export function StudentDashboard() {
               total={dashboard?.materialsTotal ?? 0}
               label="Visualizados"
               href="/student/materiais"
-              linkLabel="Vizualizar Material"
+              linkLabel="Visualizar materiais"
             />
           </CardContent>
         </Card>

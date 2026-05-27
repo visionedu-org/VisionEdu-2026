@@ -32,8 +32,8 @@ export function BadgeGrid({ badges }: BadgeGridProps) {
               }`}
               aria-label={
                 unlocked
-                  ? `Badge ${def.title}, desbloqueado`
-                  : `Badge ${def.title}, bloqueado`
+                  ? `Conquista ${def.title}, desbloqueada`
+                  : `Conquista ${def.title}, bloqueada`
               }
             >
               <Icon className="size-8 shrink-0 text-primary" aria-hidden />

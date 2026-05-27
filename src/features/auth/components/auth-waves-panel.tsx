@@ -165,15 +165,12 @@ export function AuthWavesPanel() {
             Aprenda no seu ritmo, com apoio inteligente
           </h2>
           <p className="text-base leading-relaxed text-white/65">
-            Trilhas personalizadas, acompanhamento pedagógico e tutor socrático
-            em conformidade com a Lei 15.100/2025.
+            Personalização para o aluno. Praticidade para o professor!
           </p>
         </div>
 
-        <div className="auth-glass-pill">
-          <span className="font-semibold text-white">VisionEdu</span>
-          <span className="text-white/50">·</span>
-          <span className="text-white/70">Secretaria da Educação do Piauí</span>
+        <div className="auth-glass-pill flex justify-center">
+          <span className="font-semibold text-white text-center">VisionEdu</span>
         </div>
       </div>
     </div>

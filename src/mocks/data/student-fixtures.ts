@@ -25,7 +25,7 @@ export const demoActivities: Record<string, Activity> = {
   [DEMO_ACTIVITY_ID]: {
     id: DEMO_ACTIVITY_ID,
     title: "Diagnóstico — Equações 1º grau",
-    description: "Atividade compartilhada pela Professora Regina (mock).",
+    description: "Atividade compartilhada pela Professora Regina (demonstração).",
     questions: mcqTemplate("diag1", 5),
   },
   [DEMO_ACTIVITY_ID_2]: {

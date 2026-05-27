@@ -6,7 +6,7 @@ export default function PrivacidadePage() {
       <h1 className="text-2xl font-bold">Política de Privacidade</h1>
       <p className="text-muted-foreground">
         Os dados tratados no MVP são fictícios ou de demonstração, em ambiente
-        mock, para validação de interface. Nenhum dado é enviado a servidores
+        simulado, para validação de interface. Nenhum dado é enviado a servidores
         de produção nesta fase.
       </p>
       <p className="text-muted-foreground">
