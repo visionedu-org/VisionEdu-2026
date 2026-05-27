@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -26,9 +26,12 @@ import {
   TeacherSchoolsField,
   type TeacherAssignmentsFormValues,
 } from "./teacher-schools-field";
-import { CETI_SCHOOL_ID } from "@/mocks/data/ceti-seed";
 import { defaultMateriasForClass } from "@/lib/validations/teacher-assignments";
 import { DEFAULT_ACTIVITY_CITY } from "@/lib/constants/activity-cities";
+import {
+  getDefaultSchoolIdForCity,
+  isSchoolInActivityCity,
+} from "@/lib/constants/schools-by-city";
 import { dashboardPathForRole } from "@/lib/auth-routes";
 import type { UserRole } from "@/types/domain";
 
@@ -40,7 +43,6 @@ export function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setSession = useAuthStore((s) => s.setSession);
-  const { schools, grades, getClasses, defaultSchoolId } = useCetiOptions();
 
   const role = parseRoleParam(searchParams.get("role"));
   const [rootError, setRootError] = useState<string | null>(null);
@@ -53,7 +55,7 @@ export function RegisterForm() {
       email: "",
       password: "",
       city: DEFAULT_ACTIVITY_CITY,
-      school_id: defaultSchoolId,
+      school_id: getDefaultSchoolIdForCity(DEFAULT_ACTIVITY_CITY),
       grade: "2",
       class_identifier: "A",
       termsAccepted: false,
@@ -69,12 +71,15 @@ export function RegisterForm() {
       city: DEFAULT_ACTIVITY_CITY,
       schools: [
         {
-          school_id: CETI_SCHOOL_ID,
+          school_id: getDefaultSchoolIdForCity(DEFAULT_ACTIVITY_CITY),
           classes: [
             {
               grade: "2",
               class_identifier: "A",
-              materias: defaultMateriasForClass(CETI_SCHOOL_ID, "2"),
+              materias: defaultMateriasForClass(
+                getDefaultSchoolIdForCity(DEFAULT_ACTIVITY_CITY),
+                "2"
+              ),
             },
           ],
         },
@@ -85,18 +90,60 @@ export function RegisterForm() {
 
   const activeForm = role === "student" ? studentForm : teacherForm;
 
-  const schoolId =
-    useWatch({ control: studentForm.control, name: "school_id" }) ??
-    defaultSchoolId;
-  const grade =
-    useWatch({ control: studentForm.control, name: "grade" }) ?? "2";
   const studentCity =
     useWatch({ control: studentForm.control, name: "city" }) ??
     DEFAULT_ACTIVITY_CITY;
   const teacherCity =
     useWatch({ control: teacherForm.control, name: "city" }) ??
     DEFAULT_ACTIVITY_CITY;
+
+  const {
+    schools: studentSchools,
+    grades,
+    getClasses,
+    defaultSchoolId: studentDefaultSchoolId,
+  } = useCetiOptions(studentCity);
+
+  const schoolId =
+    useWatch({ control: studentForm.control, name: "school_id" }) ??
+    studentDefaultSchoolId;
+  const grade =
+    useWatch({ control: studentForm.control, name: "grade" }) ?? "2";
   const classes = getClasses(schoolId, grade);
+
+  useEffect(() => {
+    if (!isSchoolInActivityCity(schoolId, studentCity)) {
+      studentForm.setValue("school_id", studentDefaultSchoolId, {
+        shouldValidate: true,
+      });
+    }
+  }, [studentCity, schoolId, studentDefaultSchoolId, studentForm]);
+
+  useEffect(() => {
+    const currentSchools = teacherForm.getValues("schools");
+    const allValid = currentSchools.every((entry) =>
+      isSchoolInActivityCity(entry.school_id, teacherCity)
+    );
+    if (allValid) return;
+
+    const nextSchoolId = getDefaultSchoolIdForCity(teacherCity);
+    teacherForm.setValue(
+      "schools",
+      [
+        {
+          school_id: nextSchoolId,
+          classes: [
+            {
+              grade: "2",
+              class_identifier: "A",
+              materias: defaultMateriasForClass(nextSchoolId, "2"),
+            },
+          ],
+        },
+      ],
+      { shouldValidate: true }
+    );
+  }, [teacherCity, teacherForm]);
 
   function handleRoleChange(nextRole: UserRole) {
     setRootError(null);
@@ -162,7 +209,7 @@ export function RegisterForm() {
         <h1 className="text-3xl font-bold tracking-tight">Criar conta</h1>
         <p className="text-sm text-muted-foreground">
           {role === "student"
-            ? "Cadastro de aluno — Piloto CETI Luiz Ubiraci de Carvalho"
+            ? "Cadastro de aluno"
             : "Cadastro de professor — informe escolas e turmas em que você leciona"}
         </p>
       </div>
@@ -187,12 +234,15 @@ export function RegisterForm() {
           />
 
           <ActivityCitySelect
+            role={role as "student" | "teacher"}
             value={studentCity}
-            onChange={(v) =>
-              studentForm.setValue("city", v as RegisterStudentFormValues["city"], {
-                shouldValidate: true,
-              })
-            }
+            onChange={(v) => {
+              studentForm.setValue(
+                "city",
+                v as RegisterStudentFormValues["city"],
+                { shouldValidate: true }
+              );
+            }}
             onBlur={() => studentForm.trigger("city")}
             error={formErrors.city?.message}
           />
@@ -204,7 +254,7 @@ export function RegisterForm() {
               className="flex min-h-11 w-full rounded-xl border border-transparent bg-input px-4 text-sm shadow-fluent-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
               {...studentForm.register("school_id")}
             >
-              {schools.map((s) => (
+              {studentSchools.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>
@@ -269,6 +319,7 @@ export function RegisterForm() {
 
           <ActivityCitySelect
             value={teacherCity}
+            role={role as "student" | "teacher"}
             onChange={(v) =>
               teacherForm.setValue("city", v as RegisterTeacherFormValues["city"], {
                 shouldValidate: true,
@@ -279,6 +330,7 @@ export function RegisterForm() {
           />
 
           <TeacherSchoolsField
+            activityCity={teacherCity}
             control={
               teacherForm.control as unknown as Control<TeacherAssignmentsFormValues>
             }

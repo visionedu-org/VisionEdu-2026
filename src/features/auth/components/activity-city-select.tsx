@@ -12,6 +12,7 @@ type ActivityCitySelectProps = {
   onChange: (value: string) => void;
   onBlur?: () => void;
   error?: string;
+  role: string;
 };
 
 export function ActivityCitySelect({
@@ -20,10 +21,11 @@ export function ActivityCitySelect({
   onChange,
   onBlur,
   error,
+  role,
 }: ActivityCitySelectProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>Cidade de atuação</Label>
+      <Label htmlFor={id}>{role === "student" ? "Cidade" : "Cidade de atuação"}</Label>
       <select
         id={id}
         className="flex min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"

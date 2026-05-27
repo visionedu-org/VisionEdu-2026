@@ -17,16 +17,18 @@ import {
   type TeacherSchoolsPayload,
 } from "@/lib/validations/teacher-assignments";
 import type { TeacherDiscipline } from "@/lib/validations/teacher";
+import type { ActivityCity } from "@/lib/constants/activity-cities";
 import { useCetiOptions } from "@/hooks/use-ceti-options";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { CETI_SCHOOL_ID } from "@/mocks/data/ceti-seed";
 
 export type TeacherAssignmentsFormValues = {
   schools: TeacherSchoolsPayload;
 };
 
 type TeacherSchoolsFieldProps = {
+  /** Quando informada, limita as escolas à cidade (cadastro). */
+  activityCity?: ActivityCity;
   control: Control<TeacherAssignmentsFormValues>;
   register: UseFormRegister<TeacherAssignmentsFormValues>;
   setValue: UseFormSetValue<TeacherAssignmentsFormValues>;
@@ -62,12 +64,14 @@ function findFirstAvailableClass(
 }
 
 export function TeacherSchoolsField({
+  activityCity,
   control,
   register,
   setValue,
   errors,
 }: TeacherSchoolsFieldProps) {
-  const { schools: schoolOptions, grades, getClasses } = useCetiOptions();
+  const { schools: schoolOptions, grades, getClasses, defaultSchoolId } =
+    useCetiOptions(activityCity);
 
   const {
     fields: schoolFields,
@@ -101,7 +105,7 @@ export function TeacherSchoolsField({
           onClick={() => {
             const nextSchoolId =
               schoolOptions.find((s) => !selectedSchoolIds.includes(s.id))
-                ?.id ?? CETI_SCHOOL_ID;
+                ?.id ?? defaultSchoolId;
             const nextClass = findFirstAvailableClass(
               nextSchoolId,
               grades,
