@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { resolveClassIdParam } from "@/lib/class-id-param";
 import { teacherService } from "@/services/teacher.service";
+import { useAuthStore } from "@/stores/auth-store";
 import type { ClassDashboardData } from "@/types/domain";
 import { ClassStudentsList } from "./class-students-list";
 
@@ -13,6 +14,10 @@ interface ClassDashboardProps {
 }
 
 export function ClassDashboard({ classId }: ClassDashboardProps) {
+  const teacherClasses = useAuthStore((s) => s.user?.teacher_classes);
+  const resolvedClassId = resolveClassIdParam(classId, teacherClasses);
+  const routeClassId = resolvedClassId ?? classId;
+
   const [data, setData] = useState<ClassDashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +26,7 @@ export function ClassDashboard({ classId }: ClassDashboardProps) {
     let cancelled = false;
     async function load() {
       try {
-        const dashboard = await teacherService.getClassDashboard(classId);
+        const dashboard = await teacherService.getClassDashboard(routeClassId);
         if (!cancelled) setData(dashboard);
       } catch {
         if (!cancelled) setError("Não foi possível carregar os dados da turma.");
@@ -33,7 +38,7 @@ export function ClassDashboard({ classId }: ClassDashboardProps) {
     return () => {
       cancelled = true;
     };
-  }, [classId]);
+  }, [routeClassId]);
 
   if (loading) {
     return (
@@ -48,8 +53,6 @@ export function ClassDashboard({ classId }: ClassDashboardProps) {
       </div>
     );
   }
-
-  const classUuid = resolveClassIdParam(classId);
 
   if (error || !data) {
     return (
@@ -76,48 +79,16 @@ export function ClassDashboard({ classId }: ClassDashboardProps) {
         </p>
       </header>
 
-      <ClassStudentsList classId={classId} />
-
-      <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:max-w-xs">
-        <h2 className="text-sm font-medium text-muted-foreground">Média da turma</h2>
-        <p className="mt-1 text-3xl font-bold text-primary">
-          {data.averageScore.toFixed(1)}
-          <span className="text-base font-normal text-muted-foreground"> / 10</span>
-        </p>
-      </div>
-
-      <section className="rounded-xl border border-border bg-card p-4 shadow-sm">
-        <h2 className="text-lg font-semibold">Top 3 conceitos com maior taxa de erro</h2>
-        <ol className="mt-4 space-y-3">
-          {data.topErrors.map((item, index) => (
-            <li
-              key={item.concept}
-              className="flex min-h-11 items-center justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2"
-            >
-              <span className="font-medium">
-                <span className="sr-only">Posição {index + 1}: </span>
-                {item.concept}
-              </span>
-              <span className="shrink-0 text-sm font-semibold text-destructive">
-                {item.errorRate}%
-              </span>
-            </li>
-          ))}
-        </ol>
-      </section>
-
+      <ClassStudentsList classId={routeClassId} />
       <div className="flex flex-wrap gap-3">
-        {classUuid && (
+        {resolvedClassId && (
           <Link
-            href={`/teacher/conteudos/novo?classId=${encodeURIComponent(classUuid)}`}
+            href={`/teacher/conteudos/novo?classId=${encodeURIComponent(resolvedClassId)}`}
           >
             <Button className="min-h-11">Enviar material</Button>
           </Link>
         )}
-        <Link href={`/teacher/turmas/${classId}/bncc`}>
-          <Button variant="outline" className="min-h-11">
-            Ver lacunas BNCC
-          </Button>
+        <Link href={`/teacher/turmas/${routeClassId}/bncc`}>
         </Link>
         <Link href="/teacher/turmas">
           <Button variant="outline" className="min-h-11">

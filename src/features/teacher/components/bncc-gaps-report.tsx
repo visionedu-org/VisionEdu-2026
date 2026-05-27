@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { resolveClassIdParam } from "@/lib/class-id-param";
 import { teacherService } from "@/services/teacher.service";
+import { useAuthStore } from "@/stores/auth-store";
 import type { BnccDifficulty, BnccGapRow } from "@/types/domain";
 
 interface BnccGapsReportProps {
@@ -24,6 +26,9 @@ const difficultyStyles: Record<BnccDifficulty, string> = {
 };
 
 export function BnccGapsReport({ classId }: BnccGapsReportProps) {
+  const teacherClasses = useAuthStore((s) => s.user?.teacher_classes);
+  const routeClassId = resolveClassIdParam(classId, teacherClasses) ?? classId;
+
   const [gaps, setGaps] = useState<BnccGapRow[]>([]);
   const [classLabel, setClassLabel] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +39,8 @@ export function BnccGapsReport({ classId }: BnccGapsReportProps) {
     async function load() {
       try {
         const [dashboard, bncc] = await Promise.all([
-          teacherService.getClassDashboard(classId),
-          teacherService.getBnccGaps(classId),
+          teacherService.getClassDashboard(routeClassId),
+          teacherService.getBnccGaps(routeClassId),
         ]);
         if (!cancelled) {
           setClassLabel(dashboard.classLabel);
@@ -51,7 +56,7 @@ export function BnccGapsReport({ classId }: BnccGapsReportProps) {
     return () => {
       cancelled = true;
     };
-  }, [classId]);
+  }, [routeClassId]);
 
   if (loading) {
     return (
@@ -69,9 +74,9 @@ export function BnccGapsReport({ classId }: BnccGapsReportProps) {
         role="alert"
       >
         <p className="font-medium">{error}</p>
-        <Link href={`/teacher/turmas/${classId}`}>
+        <Link href={`/teacher/turmas/${routeClassId}`}>
           <Button variant="outline" className="mt-4 min-h-11">
-            Voltar ao dashboard da turma
+            Voltar ao painel da turma
           </Button>
         </Link>
       </div>
@@ -139,9 +144,9 @@ export function BnccGapsReport({ classId }: BnccGapsReportProps) {
         </table>
       </div>
 
-      <Link href={`/teacher/turmas/${classId}`}>
+      <Link href={`/teacher/turmas/${routeClassId}`}>
         <Button variant="outline" className="min-h-11">
-          Voltar ao dashboard da turma
+          Voltar ao painel da turma
         </Button>
       </Link>
     </div>

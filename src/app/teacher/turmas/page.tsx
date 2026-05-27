@@ -3,14 +3,11 @@
 import Link from "next/link";
 import { cetiSchool } from "@/mocks/data/ceti-seed";
 import { useAuthStore } from "@/stores/auth-store";
+import { teacherClassRouteId } from "@/lib/teacher-class-route";
 import type { TeacherClassAssignment } from "@/types/domain";
 
-function classSlug(c: TeacherClassAssignment): string {
-  return `${c.grade}-${c.class_identifier}`;
-}
-
 function classLabel(c: TeacherClassAssignment): string {
-  return `${c.grade}º Turma ${c.class_identifier}`;
+  return `${c.grade}º ano · Turma ${c.class_identifier}`;
 }
 
 export default function TeacherTurmasPage() {
@@ -38,11 +35,11 @@ export default function TeacherTurmasPage() {
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {classes.map((c) => {
-            const slug = classSlug(c);
+            const routeId = teacherClassRouteId(c);
             return (
-              <li key={slug}>
+              <li key={c.class_id}>
                 <Link
-                  href={`/teacher/turmas/${slug}`}
+                  href={`/teacher/turmas/${routeId}`}
                   className="flex min-h-11 flex-col justify-center rounded-xl border border-border bg-background p-4 shadow-sm transition-colors hover:border-primary/40 hover:bg-muted/30"
                 >
                   <span className="font-semibold">{classLabel(c)}</span>

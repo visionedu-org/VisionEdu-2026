@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Users } from "lucide-react";
-import { resolveClassIdParam } from "@/lib/class-id-param";
 import { teacherService } from "@/services/teacher.service";
 import type { ClassStudentOption } from "@/types/materials";
 import {
@@ -15,27 +14,23 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ClassStudentsListProps {
+  /** UUID da turma (`ClassGroup.id`). */
   classId: string;
 }
 
 export function ClassStudentsList({ classId }: ClassStudentsListProps) {
-  const resolvedClassId = resolveClassIdParam(classId);
   const [students, setStudents] = useState<ClassStudentOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!resolvedClassId) return;
-
     let cancelled = false;
 
     async function load() {
       setLoading(true);
       setError(null);
       try {
-        const { students: list } = await teacherService.listClassStudents(
-          resolvedClassId!
-        );
+        const { students: list } = await teacherService.listClassStudents(classId);
         if (!cancelled) setStudents(list);
       } catch {
         if (!cancelled) {
@@ -51,22 +46,7 @@ export function ClassStudentsList({ classId }: ClassStudentsListProps) {
     return () => {
       cancelled = true;
     };
-  }, [resolvedClassId, classId]);
-
-  if (!resolvedClassId) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Alunos da turma</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-destructive" role="alert">
-            Turma não identificada.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  }, [classId]);
 
   if (loading) {
     return (

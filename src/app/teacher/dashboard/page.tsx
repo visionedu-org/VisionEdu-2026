@@ -12,14 +12,11 @@ import {
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
 import { useAuthStore } from "@/stores/auth-store";
+import { teacherClassRouteId } from "@/lib/teacher-class-route";
 import type { TeacherClassAssignment } from "@/types/domain";
 
-function classSlug(c: TeacherClassAssignment): string {
-  return `${c.grade}-${c.class_identifier}`;
-}
-
 function classLabel(c: TeacherClassAssignment): string {
-  return `${c.grade}º Turma ${c.class_identifier}`;
+  return `${c.grade}º ano · Turma ${c.class_identifier}`;
 }
 
 export default function TeacherDashboardPage() {
@@ -68,7 +65,7 @@ export default function TeacherDashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Link href="/teacher/conteudos">
+            <Link href="/teacher/materiais">
               <Button variant="outline" size="sm">
                 Gerenciar conteúdos
               </Button>
@@ -97,19 +94,17 @@ export default function TeacherDashboardPage() {
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
             {classes.map((c) => {
-              const slug = classSlug(c);
+              const routeId = teacherClassRouteId(c);
               return (
-                <li key={slug}>
-                  <Link href={`/teacher/turmas/${slug}`}>
-                    <Card className="h-full hover:border-primary/30">
-                      <CardHeader>
+                <li key={c.class_id}>
+                  <Link href={`/teacher/turmas/${routeId}`}>
+                    <Card className="h-full hover:border-primary/30 cursor-pointer p-6">
                         <CardTitle>{classLabel(c)}</CardTitle>
                         <CardDescription>
-                          {c.materias && c.materias.length > 0
+                          {c.materias && c.materias.length >   0
                             ? c.materias.join(", ")
                             : "Média, erros frequentes e BNCC"}
                         </CardDescription>
-                      </CardHeader>
                     </Card>
                   </Link>
                 </li>
@@ -121,19 +116,6 @@ export default function TeacherDashboardPage() {
           <Button variant="outline">Ver todas as turmas</Button>
         </Link>
       </section>
-
-      <Card className="border-dashed bg-muted/30">
-        <CardHeader>
-          <CardTitle>Tempo real</CardTitle>
-          <CardDescription>Fase 5 — em breve</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Acompanhamento ao vivo da turma na sala de aula estará disponível na
-            próxima fase do piloto.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }

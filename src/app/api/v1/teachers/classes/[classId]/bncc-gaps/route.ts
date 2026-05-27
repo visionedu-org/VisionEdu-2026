@@ -2,7 +2,7 @@ import { jsonError } from "@/server/auth/api-error";
 import { AuthRequiredError, requireTeacher } from "@/server/auth/require-auth";
 import { TeacherClassForbiddenError } from "@/server/materials/assert-teacher-class";
 import { TeacherProfileNotFoundError } from "@/server/materials/create-material";
-import { listClassStudents } from "@/server/materials/list-class-students";
+import { getBnccGapsForTeacherClass } from "@/server/teacher/get-bncc-gaps";
 import {
   TeacherClassAmbiguousError,
   TeacherClassNotFoundError,
@@ -18,8 +18,8 @@ export async function GET(request: Request, context: RouteContext) {
     const { userId } = await requireTeacher(request);
     const { classId: param } = await context.params;
     const classId = await resolveTeacherClassParam(userId, param);
-    const students = await listClassStudents(userId, classId);
-    return Response.json({ students });
+    const result = await getBnccGapsForTeacherClass(userId, classId);
+    return Response.json(result);
   } catch (err) {
     if (err instanceof AuthRequiredError) {
       return jsonError(err.status, err.code, err.message);
@@ -41,11 +41,11 @@ export async function GET(request: Request, context: RouteContext) {
       return jsonError(409, "ambiguous_class", err.message);
     }
 
-    console.error("[teachers/classes/:classId/students GET]", err);
+    console.error("[teachers/classes/:classId/bncc-gaps GET]", err);
     return jsonError(
       500,
       "internal_error",
-      "Não foi possível listar os alunos. Tente novamente."
+      "Não foi possível carregar as lacunas BNCC. Tente novamente."
     );
   }
 }
