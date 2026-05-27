@@ -24,7 +24,8 @@ export interface TeacherClassAssignment {
   school_id: string;
   grade: string;
   class_identifier: string;
-  class_id?: string;
+  /** UUID da turma (`ClassGroup.id`) — usar em rotas e APIs. */
+  class_id: string;
   materias?: TeacherDiscipline[];
 }
 
@@ -158,7 +159,6 @@ export interface ClassDashboardData {
   classLabel: string;
   studentCount: number;
   averageScore: number;
-  topErrors: Array<{ concept: string; errorRate: number }>;
 }
 
 export type BnccDifficulty = "high" | "medium" | "low";
