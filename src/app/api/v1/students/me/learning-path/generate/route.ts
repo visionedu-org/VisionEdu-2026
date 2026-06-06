@@ -1,6 +1,9 @@
 import { jsonError } from "@/server/auth/api-error";
 import { AuthRequiredError, requireStudent } from "@/server/auth/require-auth";
-import { generateStudentLearningPath } from "@/server/learning-path/generate-student-learning-path";
+import {
+  generateStudentLearningPath,
+  StudentNoAttemptsError,
+} from "@/server/learning-path/generate-student-learning-path";
 import {
   N8nConfigError,
   N8nRequestError,
@@ -20,6 +23,9 @@ export async function POST(request: Request) {
     }
     if (err instanceof StudentProfileNotFoundError) {
       return jsonError(403, "forbidden", err.message);
+    }
+    if (err instanceof StudentNoAttemptsError) {
+      return jsonError(400, "no_enem_attempts", err.message);
     }
     if (err instanceof N8nConfigError) {
       return jsonError(503, "n8n_not_configured", err.message);

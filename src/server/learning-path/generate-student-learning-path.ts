@@ -8,6 +8,13 @@ import { N8nRequestError } from "@/server/n8n/n8n-errors";
 import type { LearningPathModule } from "@/types/domain";
 import type { LearningPathCandidateQuestion } from "@/types/learning-path";
 
+export class StudentNoAttemptsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StudentNoAttemptsError";
+  }
+}
+
 function buildPathTitleHint(
   weaknesses: Awaited<ReturnType<typeof diagnoseStudentWeaknesses>>
 ): string {
@@ -94,6 +101,15 @@ export async function generateStudentLearningPath(studentId: string): Promise<{
   pathSummary: string | null;
   modules: LearningPathModule[];
 }> {
+  const attemptCount = await prisma.enemQuestionAttempt.count({
+    where: { studentId },
+  });
+  if (attemptCount === 0) {
+    throw new StudentNoAttemptsError(
+      "Você precisa responder pelo menos uma questão ENEM antes de gerar uma trilha personalizada."
+    );
+  }
+
   const weaknesses = await diagnoseStudentWeaknesses(studentId);
 
   const priorAttempts = await prisma.enemQuestionAttempt.findMany({
