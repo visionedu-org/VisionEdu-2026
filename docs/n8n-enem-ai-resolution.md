@@ -176,22 +176,16 @@ return [
 |-------|--------|
 | Send Body | **On** |
 | Body Content Type | **JSON** |
-| Specify Body | **Using JSON** |
-| JSON | Clique em **Expression** (`fx`) e cole **somente** (sem `JSON.stringify`): |
+| Specify Body | **Using Parameter Mode** |
 
-```
-={{ $json.groqRequestBody }}
-```
+| Parameter Name | Value (fx) |
+|---|---|
+| `model` | `={{ $json.groqRequestBody.model }}` |
+| `temperature` | `={{ $json.groqRequestBody.temperature }}` |
+| `max_tokens` | `={{ $json.groqRequestBody.max_tokens }}` |
+| `messages` | `={{ $json.groqRequestBody.messages }}` |
 
-O campo deve ficar roxo (expressão). O n8n envia um **objeto JSON** para a Groq.
-
-**Não use** `JSON.stringify` no body — isso manda uma *string* JSON e a Groq responde:
-
-`cannot unmarshal string into Go value of type map[string]interface {}`
-
-**Não use** Body Content Type **Raw** com `JSON.stringify` — é a causa desse erro.
-
-**Conferência:** execute o nó **Montar prompt** e veja se `groqRequestBody` é um objeto com `model`, `messages`, etc. O HTTP Request deve receber esse mesmo objeto, não uma string.
+**Conferência:** execute o nó **Montar prompt** e veja se `groqRequestBody` é um objeto com `model`, `messages`, etc.
 
 ---
 
@@ -310,9 +304,8 @@ Resposta esperada:
 
 | O que aparece | O que fazer |
 |---------------|-------------|
-| Groq: *cannot unmarshal string into map* | Você usou `JSON.stringify` — troque para Body **JSON** + `={{ $json.groqRequestBody }}` **sem** stringify |
-| `=[object Object]` no preview do body | Ignore o preview; o importante é modo **JSON** + expressão com o objeto |
-| Groq: *unexpected end of JSON input* | Body vazio — confira se o nó anterior exporta `groqRequestBody` |
+| Groq: *unexpected end of JSON input* / 400 | HTTP Request precisa usar **Using Parameter Mode** (não "Using JSON") — veja seção do nó 3 |
+| `=[object Object]` no preview do body | Ignore o preview; o importante é usar **Parameter Mode** com expressões individuais |
 | `access to env vars denied` | Não use `$env` no Code; use só este guia (credencial Groq no HTTP Request) |
 | `502` no VisionEdu | Fluxo falhou no n8n → abra **Executions** e veja o nó vermelho |
 | `503 n8n_not_configured` | Falta `N8N_ENEM_AI_RESOLUTION_WEBHOOK_URL` no `.env` do VisionEdu |
@@ -358,7 +351,7 @@ Resposta esperada:
 
 - [ ] Credencial **Groq** criada no n8n
 - [ ] 5 nós conectados na ordem certa
-- [ ] HTTP Request: credencial **Groq** + body **JSON** com `={{ $json.groqRequestBody }}` (sem stringify)
+- [ ] HTTP Request: credencial **Groq** + **Using Parameter Mode** com parâmetros (`model`, `temperature`, `max_tokens`, `messages`)
 - [ ] Workflow **Active**
 - [ ] `.env` do VisionEdu com `N8N_ENEM_AI_RESOLUTION_WEBHOOK_URL`
 - [ ] Teste no PowerShell retorna `explanation`

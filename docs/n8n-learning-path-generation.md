@@ -170,10 +170,15 @@ return [{ json: { groqRequestBody } }];
 | Authentication | **Predefined Credential Type** → **Groq** |
 | Send Body | **On** |
 | Body Content Type | **JSON** |
-| Specify Body | **Using JSON** |
-| JSON (expressão `fx`) | `={{ $json.groqRequestBody }}` |
+| Specify Body | **Using Parameter Mode** |
 
-**Não use** `JSON.stringify` no body.
+| Parameter Name | Value (fx) |
+|---|---|
+| `model` | `={{ $json.groqRequestBody.model }}` |
+| `temperature` | `={{ $json.groqRequestBody.temperature }}` |
+| `max_tokens` | `={{ $json.groqRequestBody.max_tokens }}` |
+| `response_format` | `={{ $json.groqRequestBody.response_format }}` |
+| `messages` | `={{ $json.groqRequestBody.messages }}` |
 
 ---
 
@@ -341,6 +346,7 @@ Cada `questionKey` **deve** existir em `candidates`. O servidor descarta etapas 
 |---------|---------|
 | `503 n8n_not_configured` | Defina `N8N_LEARNING_PATH_WEBHOOK_URL` no `.env` |
 | Trilha vazia / erro de candidatos | Estudante precisa de questões ENEM compatíveis com o diagnóstico; pratique mais ou amplie anos no servidor |
+| Groq: *unexpected end of JSON input* / 400 | HTTP Request precisa usar **Using Parameter Mode** (não "Using JSON") — veja seção do nó 3 |
 | Groq retorna texto fora de JSON | Ative `response_format: json_object` e revise o prompt |
 | Etapas ignoradas | `questionKey` não estava em `candidates` — ajuste o prompt da Groq |
 | Etapa bloqueada no app | Acerte a questão da etapa anterior (persistido no banco) |
@@ -351,7 +357,7 @@ Cada `questionKey` **deve** existir em `candidates`. O servidor descarta etapas 
 
 - [ ] Credencial Groq no n8n
 - [ ] Path do webhook: `learning-path-generation`
-- [ ] Body JSON com `={{ $json.groqRequestBody }}` (sem stringify)
+- [ ] HTTP Request: **Using Parameter Mode** com 5 parâmetros (`model`, `temperature`, `max_tokens`, `response_format`, `messages`)
 - [ ] Workflow **Active**
 - [ ] `.env` com `N8N_LEARNING_PATH_WEBHOOK_URL`
 - [ ] Teste no app: gerar trilha → resolver etapa → desbloquear próxima
