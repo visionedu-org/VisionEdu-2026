@@ -18,6 +18,7 @@ import type {
 import type { ClassGroup } from "@/types/domain";
 import type { TeacherSchoolsPayload } from "@/lib/validations/teacher-assignments";
 import type { User } from "@/types/domain";
+import type { ClassPerformanceData, StudentPerformanceData } from "@/types/performance";
 
 export const teacherService = {
   getClassDashboard(classId: string): Promise<ClassDashboardData> {
@@ -155,6 +156,32 @@ export const teacherService = {
   getActivity(id: string): Promise<Activity> {
     return apiClient.get<Activity>(
       `/api/v1/teachers/activities/${encodeURIComponent(id)}`
+    );
+  },
+
+  getClassPerformance(
+    classId: string,
+    params?: { days?: number; discipline?: string }
+  ): Promise<ClassPerformanceData> {
+    const search = new URLSearchParams();
+    if (params?.days) search.set("days", String(params.days));
+    if (params?.discipline) search.set("discipline", params.discipline);
+    const qs = search.toString();
+    return apiClient.get<ClassPerformanceData>(
+      `/api/v1/teachers/classes/${encodeURIComponent(classId)}/performance${qs ? `?${qs}` : ""}`
+    );
+  },
+
+  getStudentPerformance(
+    studentId: string,
+    params: { classId: string; source?: string; days?: number }
+  ): Promise<StudentPerformanceData> {
+    const search = new URLSearchParams();
+    search.set("classId", params.classId);
+    if (params.source) search.set("source", params.source);
+    if (params.days) search.set("days", String(params.days));
+    return apiClient.get<StudentPerformanceData>(
+      `/api/v1/teachers/students/${encodeURIComponent(studentId)}/performance?${search.toString()}`
     );
   },
 };
