@@ -176,6 +176,7 @@ model LearningPathStep {
   questionYear     Int                    @map("question_year")
   questionIndex    Int                    @map("question_index")
   questionLanguage String?                @map("question_language")
+  videoUrl         String?                @map("video_url")
   status           LearningPathStepStatus @default(locked)
   completedAt      DateTime?              @map("completed_at")
 
