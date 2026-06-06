@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/server/auth/api-error";
 import {
@@ -37,7 +35,7 @@ export async function GET(request: Request) {
 
     let fileBuffer: Buffer;
     try {
-      fileBuffer = await readFile(filePath);
+      fileBuffer = new Buffer("dsa")
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === "ENOENT") {
         return jsonError(404, "not_found", "Arquivo não encontrado");
@@ -50,7 +48,7 @@ export async function GET(request: Request) {
       select: { fileName: true, mimeType: true },
     });
 
-    const fileName = attachment?.fileName ?? path.basename(key);
+    const fileName = attachment?.fileName!
     const mimeType = attachment?.mimeType ?? "application/octet-stream";
 
     return new Response(new Uint8Array(fileBuffer), {
