@@ -37,12 +37,12 @@ export function getApiErrorMessage(
     return API_ERROR_MESSAGES[code];
   }
 
-  if (status > 0 && STATUS_FALLBACK_MESSAGES[status]) {
-    return STATUS_FALLBACK_MESSAGES[status];
-  }
-
   if (serverMessage?.trim()) {
     return serverMessage.trim();
+  }
+
+  if (status > 0 && STATUS_FALLBACK_MESSAGES[status]) {
+    return STATUS_FALLBACK_MESSAGES[status];
   }
 
   return "Erro na requisição. Tente novamente.";
