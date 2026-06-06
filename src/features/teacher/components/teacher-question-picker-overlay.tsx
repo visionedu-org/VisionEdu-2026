@@ -117,7 +117,7 @@ export function TeacherQuestionPickerOverlay({
         answered: "all",
         discipline: draftFilters.discipline,
         difficulty: draftFilters.difficulty,
-        shuffle: false,
+        shuffle: draftFilters.shuffle,
         favorites: false,
       };
 
