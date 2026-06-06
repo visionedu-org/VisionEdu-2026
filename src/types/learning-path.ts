@@ -41,6 +41,7 @@ export interface LearningPathN8nResponse {
   pathTitle: string;
   summary?: string;
   steps: LearningPathN8nStep[];
+  videoSearchQuery?: string;
 }
 
 export interface LearningPathStepSubmitBody {

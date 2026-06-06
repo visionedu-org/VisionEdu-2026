@@ -7,7 +7,7 @@ import { requestLearningPathGeneration } from "@/server/n8n/request-learning-pat
 import { searchYoutubeVideo } from "@/server/youtube/search-video";
 import { N8nRequestError } from "@/server/n8n/n8n-errors";
 import type { LearningPathModule } from "@/types/domain";
-import type { LearningPathCandidateQuestion } from "@/types/learning-path";
+import type { LearningPathCandidateQuestion, LearningPathN8nStep } from "@/types/learning-path";
 
 export class StudentNoAttemptsError extends Error {
   constructor(message: string) {
@@ -165,15 +165,15 @@ export async function generateStudentLearningPath(studentId: string): Promise<{
     validatedSteps.length > 0
       ? validatedSteps
       : candidates.slice(0, 5).map((candidate, index) => ({
-          step: {
-            title: candidate.skills[0] ?? `Etapa ${index + 1}`,
-            description: "Questão selecionada para reforço.",
-            questionKey: candidate.questionKey,
-            discipline: candidate.discipline,
-            skill: candidate.skills[0] ?? null,
-          },
-          candidate,
-        }));
+        step: {
+          title: candidate.skills[0] ?? `Etapa ${index + 1}`,
+          description: "Questão selecionada para reforço.",
+          questionKey: candidate.questionKey,
+          discipline: candidate.discipline,
+          skill: candidate.skills[0] ?? null,
+        },
+        candidate,
+      }));
 
   if (stepsToPersist.length === 0) {
     throw new N8nRequestError(
@@ -183,8 +183,9 @@ export async function generateStudentLearningPath(studentId: string): Promise<{
 
   const stepsWithVideo = await Promise.all(
     stepsToPersist.map(async (entry) => {
+      const step = entry.step as LearningPathN8nStep
       const query =
-        entry.step.videoSearchQuery ||
+        step.videoSearchQuery ||
         `${entry.step.skill ?? entry.candidate.skills[0] ?? ""} ENEM`;
       const videoUrl = await searchYoutubeVideo(query);
       return { ...entry, videoUrl };
