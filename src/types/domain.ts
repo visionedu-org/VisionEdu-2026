@@ -68,6 +68,7 @@ export interface LearningPathModule {
   description?: string;
   skill?: string;
   discipline?: string;
+  videoUrl?: string;
 }
 
 export interface StudentLearningPathResponse {

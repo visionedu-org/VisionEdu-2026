@@ -12,6 +12,7 @@ export interface LearningPathStepSummary {
   status: LearningPathModuleStatus;
   skill: string | null;
   discipline: string | null;
+  videoUrl: string | null;
 }
 
 export interface LearningPathStepDetailResponse {

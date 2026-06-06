@@ -16,6 +16,7 @@ export interface LearningPathCandidateQuestion {
   discipline: EnemDiscipline | null;
   skills: string[];
   title: string;
+  context: string | null;
 }
 
 /** Payload enviado ao webhook n8n para gerar a trilha. */
@@ -32,6 +33,7 @@ export interface LearningPathN8nStep {
   questionKey: string;
   discipline?: string | null;
   skill?: string | null;
+  videoSearchQuery?: string;
 }
 
 /** Resposta esperada do webhook n8n. */
