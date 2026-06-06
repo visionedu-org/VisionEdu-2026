@@ -15,5 +15,6 @@ export function mapLearningPathToModules(path: PathWithSteps): LearningPathModul
       description: step.description ?? undefined,
       skill: step.skill ?? undefined,
       discipline: step.discipline ?? undefined,
+      videoUrl: step.videoUrl ?? undefined,
     }));
 }

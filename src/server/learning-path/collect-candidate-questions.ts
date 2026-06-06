@@ -63,6 +63,7 @@ function toCandidate(question: EnemQuestion): LearningPathCandidateQuestion {
     discipline: question.discipline,
     skills: question.skills,
     title: question.title,
+    context: question.context,
   };
 }
 

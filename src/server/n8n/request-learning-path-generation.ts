@@ -24,6 +24,10 @@ function parseStep(raw: unknown): LearningPathN8nStep | null {
     discipline:
       typeof record.discipline === "string" ? record.discipline : null,
     skill: typeof record.skill === "string" ? record.skill : null,
+    videoSearchQuery:
+      typeof record.videoSearchQuery === "string"
+        ? record.videoSearchQuery.trim()
+        : undefined,
   };
 }
 

@@ -4,6 +4,7 @@ import { collectCandidateQuestionsForWeaknesses } from "@/server/learning-path/c
 import { diagnoseStudentWeaknesses } from "@/server/learning-path/diagnose-student-weaknesses";
 import { mapLearningPathToModules } from "@/server/learning-path/map-learning-path-modules";
 import { requestLearningPathGeneration } from "@/server/n8n/request-learning-path-generation";
+import { searchYoutubeVideo } from "@/server/youtube/search-video";
 import { N8nRequestError } from "@/server/n8n/n8n-errors";
 import type { LearningPathModule } from "@/types/domain";
 import type { LearningPathCandidateQuestion } from "@/types/learning-path";
@@ -180,6 +181,16 @@ export async function generateStudentLearningPath(studentId: string): Promise<{
     );
   }
 
+  const stepsWithVideo = await Promise.all(
+    stepsToPersist.map(async (entry) => {
+      const query =
+        entry.step.videoSearchQuery ||
+        `${entry.step.skill ?? entry.candidate.skills[0] ?? ""} ENEM`;
+      const videoUrl = await searchYoutubeVideo(query);
+      return { ...entry, videoUrl };
+    })
+  );
+
   const path = await prisma.$transaction(async (tx) => {
     await tx.studentLearningPath.updateMany({
       where: { studentId, isActive: true },
@@ -193,7 +204,7 @@ export async function generateStudentLearningPath(studentId: string): Promise<{
         summary: aiResult.summary ?? null,
         isActive: true,
         steps: {
-          create: stepsToPersist.map(({ step, candidate }, index) => ({
+          create: stepsWithVideo.map(({ step, candidate, videoUrl }, index) => ({
             orderIndex: index,
             title: step.title,
             description: step.description ?? null,
@@ -203,6 +214,7 @@ export async function generateStudentLearningPath(studentId: string): Promise<{
             questionYear: candidate.year,
             questionIndex: candidate.index,
             questionLanguage: candidate.language,
+            videoUrl,
             status: index === 0 ? "in_progress" : "locked",
           })),
         },
