@@ -66,6 +66,7 @@ export const enemQuestionsService = {
     index: number;
     language?: string | null;
     selectedLetter: string;
+    source?: "practice" | "learning_path" | "material";
   }): Promise<{ isCorrect: boolean; questionKey: string }> {
     return apiClient.post("/api/v1/students/enem/attempts", body);
   },

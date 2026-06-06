@@ -92,6 +92,7 @@ export async function submitLearningPathStepAnswer(
       selectedLetter,
       correctLetter: question.correctAlternative,
       isCorrect,
+      source: "learning_path",
       answeredAt: new Date(),
     },
     update: {
@@ -100,6 +101,7 @@ export async function submitLearningPathStepAnswer(
       isCorrect,
       discipline: question.discipline,
       primarySkill: question.skills[0] ?? null,
+      source: "learning_path",
       answeredAt: new Date(),
     },
   });

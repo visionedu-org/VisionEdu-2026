@@ -51,6 +51,7 @@ export function MaterialEnemQuestionsSection({
       <EnemQuestionPlayer
         questions={questions}
         initialIndex={practiceIndex}
+        context="material"
         onClose={() => setPracticeIndex(null)}
       />
     );

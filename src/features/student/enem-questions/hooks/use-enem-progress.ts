@@ -77,7 +77,7 @@ export function useEnemProgress() {
   }, []);
 
   const answerQuestion = useCallback(
-    (question: EnemQuestion, letter: EnemAlternativeLetter) => {
+    (question: EnemQuestion, letter: EnemAlternativeLetter, source?: "practice" | "learning_path" | "material") => {
       const record = recordEnemAnswer(question, letter);
       notifyEnemProgressChange();
       void enemQuestionsService
@@ -86,6 +86,7 @@ export function useEnemProgress() {
           index: question.index,
           language: question.language,
           selectedLetter: letter,
+          source,
         })
         .then((result) => {
           applyEnemAnswerRecord({

@@ -26,12 +26,14 @@ interface EnemQuestionPlayerProps {
   questions: EnemQuestion[];
   initialIndex: number;
   onClose: () => void;
+  context?: "practice" | "material";
 }
 
 export function EnemQuestionPlayer({
   questions,
   initialIndex,
   onClose,
+  context = "practice",
 }: EnemQuestionPlayerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const safeIndex = Math.min(
@@ -70,6 +72,7 @@ export function EnemQuestionPlayer({
           question={question}
           currentIndex={safeIndex}
           total={total}
+          context={context}
           onClose={onClose}
           onNavigate={setCurrentIndex}
         />
@@ -82,6 +85,7 @@ interface EnemQuestionPlayerBodyProps {
   question: EnemQuestion;
   currentIndex: number;
   total: number;
+  context: "practice" | "material";
   onClose: () => void;
   onNavigate: (index: number) => void;
 }
@@ -90,6 +94,7 @@ function EnemQuestionPlayerBody({
   question,
   currentIndex,
   total,
+  context,
   onClose,
   onNavigate,
 }: EnemQuestionPlayerBodyProps) {
@@ -117,7 +122,7 @@ function EnemQuestionPlayerBody({
 
   function handleConfirm() {
     if (!selected || revealed) return;
-    answerQuestion(question, selected);
+    answerQuestion(question, selected, context);
     setRevealed(true);
   }
 

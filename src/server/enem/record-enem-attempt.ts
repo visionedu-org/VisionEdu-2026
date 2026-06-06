@@ -12,6 +12,7 @@ export async function recordEnemAttempt(
     index: number;
     language?: string | null;
     selectedLetter: EnemAlternativeLetter;
+    source?: "practice" | "learning_path" | "material";
   }
 ): Promise<{ isCorrect: boolean; questionKey: string }> {
   const { studentId } = await getStudentContext(studentUserId);
@@ -31,6 +32,8 @@ export async function recordEnemAttempt(
   );
   const isCorrect = params.selectedLetter === question.correctAlternative;
 
+  const source = params.source ?? "practice";
+
   await prisma.enemQuestionAttempt.upsert({
     where: {
       studentId_questionKey: { studentId, questionKey },
@@ -46,6 +49,7 @@ export async function recordEnemAttempt(
       selectedLetter: params.selectedLetter,
       correctLetter: question.correctAlternative,
       isCorrect,
+      source,
       answeredAt: new Date(),
     },
     update: {
@@ -54,6 +58,7 @@ export async function recordEnemAttempt(
       isCorrect,
       discipline: question.discipline,
       primarySkill: question.skills[0] ?? null,
+      source,
       answeredAt: new Date(),
     },
   });
