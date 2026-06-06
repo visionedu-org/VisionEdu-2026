@@ -81,7 +81,7 @@ export function StudentPerformancePage({
     ? data.dailyAccuracy
       .filter((d) => d.total > 0)
       .map((d) => ({
-        date: d.date.slice(5),
+        date: `${d.date.slice(8, 10)}/${d.date.slice(5, 7)}`,
         accuracy: d.accuracyPercent,
         answered: d.total,
       }))
