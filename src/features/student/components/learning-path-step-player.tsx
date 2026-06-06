@@ -20,6 +20,7 @@ import { EnemAiResolutionDialog } from "@/features/student/enem-questions/compon
 import { EnemQuestionAlternatives } from "@/features/student/enem-questions/components/enem-question-alternatives";
 import { EnemQuestionContext } from "@/features/student/enem-questions/components/enem-question-context";
 import { EnemQuestionFeedback } from "@/features/student/enem-questions/components/enem-question-feedback";
+import { getYoutubeEmbedUrl } from "@/lib/materials-video";
 
 interface LearningPathStepPlayerProps {
   initial: LearningPathStepDetailResponse;
@@ -137,6 +138,22 @@ export function LearningPathStepPlayer({ initial }: LearningPathStepPlayerProps)
           <p className="text-sm text-muted-foreground">{step.description}</p>
         )}
       </header>
+
+      {step.videoUrl && (() => {
+        const embedUrl = getYoutubeEmbedUrl(step.videoUrl);
+        if (!embedUrl) return null;
+        return (
+          <div className="aspect-video overflow-hidden rounded-xl border border-border">
+            <iframe
+              src={embedUrl}
+              title="Vídeo explicativo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="h-full w-full"
+            />
+          </div>
+        );
+      })()}
 
       <div className="flex flex-wrap gap-1.5 text-xs">
         <MetaTag>ENEM {question.year}</MetaTag>
