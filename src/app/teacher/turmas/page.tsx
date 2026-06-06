@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { cetiSchool } from "@/mocks/data/ceti-seed";
 import { useAuthStore } from "@/stores/auth-store";
 import { teacherClassRouteId } from "@/lib/teacher-class-route";
 import type { TeacherClassAssignment } from "@/types/domain";
@@ -10,8 +9,16 @@ function classLabel(c: TeacherClassAssignment): string {
   return `${c.grade}º ano · Turma ${c.class_identifier}`;
 }
 
+function schoolNameMap(
+  teacherSchools: { school_id: string; name: string }[] | undefined
+): Map<string, string> {
+  return new Map(teacherSchools?.map((s) => [s.school_id, s.name]) ?? []);
+}
+
 export default function TeacherTurmasPage() {
-  const classes = useAuthStore((s) => s.user?.teacher_classes ?? []);
+  const user = useAuthStore((s) => s.user);
+  const classes = user?.teacher_classes ?? [];
+  const schoolById = schoolNameMap(user?.teacher_schools);
 
   return (
     <div className="space-y-6">
@@ -44,7 +51,7 @@ export default function TeacherTurmasPage() {
                 >
                   <span className="font-semibold">{classLabel(c)}</span>
                   <span className="text-sm text-muted-foreground">
-                    {cetiSchool.name}
+                    {schoolById.get(c.school_id) ?? "—"}
                   </span>
                 </Link>
               </li>
