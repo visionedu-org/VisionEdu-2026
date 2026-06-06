@@ -59,6 +59,7 @@ export async function GET(
         status: step.status,
         skill: step.skill,
         discipline: step.discipline,
+        videoUrl: step.videoUrl,
       },
       question,
     });
