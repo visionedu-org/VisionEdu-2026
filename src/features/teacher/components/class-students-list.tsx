@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Users } from "lucide-react";
 import { teacherService } from "@/services/teacher.service";
 import type { ClassStudentOption } from "@/types/materials";
@@ -102,20 +103,22 @@ export function ClassStudentsList({ classId }: ClassStudentsListProps) {
         ) : (
           <ul className="divide-y divide-border/60 rounded-xl border border-border/60">
             {students.map((student, index) => (
-              <li
-                key={student.id}
-                className="flex min-h-11 items-center gap-3 px-4 py-3 fluent-transition hover:bg-muted/30"
-              >
-                <span
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary"
-                  aria-hidden
+              <li key={student.id}>
+                <Link
+                  href={`/teacher/turmas/${classId}/aluno/${student.id}`}
+                  className="flex min-h-11 items-center gap-3 px-4 py-3 fluent-transition hover:bg-muted/30"
                 >
-                  {student.name.charAt(0).toUpperCase()}
-                </span>
-                <span className="font-medium">{student.name}</span>
-                <span className="sr-only">
-                  , posição {index + 1} de {students.length}
-                </span>
+                  <span
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary"
+                    aria-hidden
+                  >
+                    {student.name.charAt(0).toUpperCase()}
+                  </span>
+                  <span className="font-medium">{student.name}</span>
+                  <span className="sr-only">
+                    , posição {index + 1} de {students.length}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

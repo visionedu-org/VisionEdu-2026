@@ -8,6 +8,7 @@ import { teacherService } from "@/services/teacher.service";
 import { useAuthStore } from "@/stores/auth-store";
 import type { ClassDashboardData } from "@/types/domain";
 import { ClassStudentsList } from "./class-students-list";
+import { ClassPerformanceChart } from "./class-performance-chart";
 
 interface ClassDashboardProps {
   classId: string;
@@ -80,6 +81,7 @@ export function ClassDashboard({ classId }: ClassDashboardProps) {
       </header>
 
       <ClassStudentsList classId={routeClassId} />
+      <ClassPerformanceChart classId={routeClassId} />
       <div className="flex flex-wrap gap-3">
         {resolvedClassId && (
           <Link
