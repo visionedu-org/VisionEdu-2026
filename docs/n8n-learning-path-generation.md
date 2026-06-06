@@ -16,7 +16,7 @@ Webhook
    → Respond to Webhook
 ```
 
-O VisionEdu envia o diagnóstico + candidatos; o n8n responde com `{ pathTitle, summary, steps }`.
+O VisionEdu envia o diagnóstico + candidatos; o n8n responde com `{ pathTitle, summary, steps }`. Cada step pode conter `videoSearchQuery` para busca de vídeo explicativo no YouTube.
 
 ---
 
@@ -104,7 +104,9 @@ const weaknesses = (body.weaknesses ?? [])
 const candidates = (body.candidates ?? [])
   .map(
     (c) =>
-      `- ${c.questionKey}: ${c.title} | disciplina: ${c.discipline ?? "—"} | tópicos: ${(c.skills ?? []).join(", ")}`
+      `- ${c.questionKey}: ${c.title} | disciplina: ${c.discipline ?? "—"} | tópicos: ${(c.skills ?? []).join(", ")}${
+        c.context ? `\n  Enunciado: "${c.context.slice(0, 500)}"` : ""
+      }`
   )
   .join("\n");
 
@@ -118,6 +120,8 @@ Regras:
 - Todas as questões de uma etapa devem corresponder ao tópico (skill) indicado na fraqueza.
 - Entre 3 e 8 etapas.
 - Títulos curtos (máx. 50 caracteres), descrições em 1 frase.
+- Cada etapa deve incluir videoSearchQuery com termos precisos para busca no YouTube.
+- ATENÇÃO: o campo "skill" das questões candidatas é uma aproximação automática baseada no índice da prova e PODE ESTAR INCORRETO. Para gerar videoSearchQuery, IGNORE o campo skill e use APENAS o enunciado da questão para identificar o tópico real.
 - Português do Brasil.`;
 
 const userPrompt = `Monte uma trilha de aprendizagem para o estudante.
@@ -140,7 +144,8 @@ Formato de resposta (JSON):
       "description": "string",
       "questionKey": "YYYY:INDEX:default",
       "discipline": "matematica | linguagens | ...",
-      "skill": "string"
+      "skill": "string",
+      "videoSearchQuery": "termo de busca para YouTube baseado EXCLUSIVAMENTE no enunciado da questão. Identifique o tópico real pelo texto da questão e gere termos precisos (ex.: 'mediana grafico receita despesa ENEM estatistica')"
     }
   ]
 }`;
@@ -213,6 +218,9 @@ return [
         questionKey: String(s.questionKey ?? "").trim(),
         discipline: s.discipline ?? null,
         skill: s.skill ?? null,
+        videoSearchQuery: s.videoSearchQuery
+          ? String(s.videoSearchQuery).trim()
+          : undefined,
       })),
     },
   },
@@ -312,7 +320,8 @@ Invoke-RestMethod -Method POST `
       "language": null,
       "discipline": "matematica",
       "skills": ["Geometria"],
-      "title": "Questão ..."
+      "title": "Questão ...",
+      "context": "Um terreno retangular tem área 120 m²..."
     }
   ]
 }
@@ -330,13 +339,16 @@ Invoke-RestMethod -Method POST `
       "description": "Revise áreas e perímetros com esta questão.",
       "questionKey": "2023:42:default",
       "discipline": "matematica",
-      "skill": "Geometria"
+      "skill": "Geometria",
+      "videoSearchQuery": "setor circular area ENEM formula exercicio resolvido"
     }
   ]
 }
 ```
 
 Cada `questionKey` **deve** existir em `candidates`. O servidor descarta etapas inválidas e usa fallback se necessário.
+
+Cada `videoSearchQuery` é usado pelo servidor para buscar o vídeo mais relevante no YouTube. Se não houver API key ou a busca falhar, a etapa funciona sem vídeo (graceful).
 
 ---
 
@@ -359,5 +371,5 @@ Cada `questionKey` **deve** existir em `candidates`. O servidor descarta etapas 
 - [ ] Path do webhook: `learning-path-generation`
 - [ ] HTTP Request: **Using Parameter Mode** com 5 parâmetros (`model`, `temperature`, `max_tokens`, `response_format`, `messages`)
 - [ ] Workflow **Active**
-- [ ] `.env` com `N8N_LEARNING_PATH_WEBHOOK_URL`
+- [ ] `.env` com `N8N_LEARNING_PATH_WEBHOOK_URL` e `YOUTUBE_API_KEY`
 - [ ] Teste no app: gerar trilha → resolver etapa → desbloquear próxima
