@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  AlertCircle,
   BookOpen,
   GraduationCap,
   Sparkles,
@@ -29,7 +28,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AppPage } from "@/components/layout/app-page";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const dashboardStatCardHeaderClass =
   "flex-row items-center gap-2 space-y-0 px-4 py-3 pb-0";
@@ -78,9 +76,6 @@ export function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [generatingPath, setGeneratingPath] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [pathGenerateError, setPathGenerateError] = useState<string | null>(
-    null
-  );
 
   const modules = learningPath?.modules ?? [];
 
@@ -123,7 +118,7 @@ export function StudentDashboard() {
 
   async function handleGenerateLearningPath() {
     setGeneratingPath(true);
-    setPathGenerateError(null);
+    setToast(null);
     try {
       const generated = await studentService.generateLearningPath();
       setLearningPath(generated);
@@ -133,7 +128,7 @@ export function StudentDashboard() {
         err instanceof ApiError
           ? err.message
           : "Não foi possível gerar a trilha. Tente novamente em instantes.";
-      setPathGenerateError(message);
+      setToast(message);
     } finally {
       setGeneratingPath(false);
     }
@@ -276,14 +271,6 @@ export function StudentDashboard() {
           <p className="text-sm text-muted-foreground">
             {learningPath.pathSummary}
           </p>
-        )}
-
-        {pathGenerateError && (
-          <Alert variant="destructive">
-            <AlertCircle className="size-4" aria-hidden />
-            <AlertTitle>Não foi possível gerar a trilha</AlertTitle>
-            <AlertDescription>{pathGenerateError}</AlertDescription>
-          </Alert>
         )}
 
         {modules.length === 0 ? (
